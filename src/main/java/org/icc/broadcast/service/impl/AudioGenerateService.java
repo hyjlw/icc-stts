@@ -4,7 +4,7 @@ package org.icc.broadcast.service.impl;
 import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.icc.broadcast.dto.AudioTransDto;
+import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.pool.ThreadPoolExecutorFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,17 +27,18 @@ public class AudioGenerateService {
 
     private final SpeechRecognitionService speechRecognitionService;
     private final AudioPlayService audioPlayService;
+    private final FfmpegService ffmpegService;
 
+    public void generateAudio(AudioInfo audioInfo) {
+        log.info("start to generate audio: {}", audioInfo);
 
-    public void generateAudio(AudioTransDto audioTrans, String fileName, String text) {
-        log.info("start to generate audio: {} to {}", text, audioTrans.getDestLang());
-
-        String srcLang = audioTrans.getSrcLang();
-        String destLang = audioTrans.getDestLang();
-        String sessionId = audioTrans.getSessionId();
-        String audioModel = audioTrans.getDestModel();
+        String destLang = audioInfo.getDestLang();
+        String sessionId = audioInfo.getSessionId();
+        String audioModel = audioInfo.getDestModel();
 
         SINGLE_POOL.execute(() -> {
+            String fileName = FileUtil.getName(audioInfo.getRawFilePath());
+
             String destFilePath = this.transPath + "/" + sessionId + "/" + fileName;
             String destParentDir = FileUtil.getParent(destFilePath, 1);
             if(!FileUtil.exist(destParentDir)) {
@@ -50,14 +51,36 @@ public class AudioGenerateService {
                 }
             }
 
-            speechRecognitionService.synthesizeTextToSpeech(destLang, audioModel, text, destFilePath);
+            audioInfo.setSynthStartTime(System.currentTimeMillis());
+
+            speechRecognitionService.synthesizeTextToSpeech(destLang, audioModel, audioInfo.getDestText(), destFilePath);
+
+            audioInfo.setSynthEndTime(System.currentTimeMillis());
+
+            log.info("time elapsed for synthesis: {} ms", (audioInfo.getSynthEndTime() - audioInfo.getSynthStartTime()));
+
             if(!FileUtil.exist(destFilePath)) {
                 log.warn("generate audio dest: {} file: {} failed", destLang, destFilePath);
                 return;
             }
 
-            audioPlayService.playAudio(audioTrans, destFilePath);
+            audioInfo.setDestFilePath(destFilePath);
 
+            long destDuration = ffmpegService.getDuration(destFilePath);
+            if(destDuration > audioInfo.getRawDuration()) {
+                double atempo = 1.0 * destDuration / audioInfo.getRawDuration();
+                if (atempo > 2) {
+                    atempo = 2.0;
+                }
+                String destStretchedFilePath = this.transPath + "/" + sessionId + "/" + "stretched_" + fileName;
+                ffmpegService.stretchAudio(destFilePath, destStretchedFilePath, atempo);
+
+                if(FileUtil.exist(destStretchedFilePath)) {
+                    audioInfo.setDestFilePath(destStretchedFilePath);
+                }
+            }
+
+            audioPlayService.playAudio(audioInfo);
         });
     }
 }

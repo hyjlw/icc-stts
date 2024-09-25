@@ -1,8 +1,10 @@
 package org.icc.broadcast.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.dto.AudioTransDto;
 import org.icc.broadcast.ws.SocketMsg;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Service
 @Slf4j
@@ -26,6 +30,8 @@ import java.nio.file.Path;
 public class AudioProcessService {
 
     private final static int WEIGHT = 2;
+
+    private final static BlockingQueue<SocketMsg> MSG_QUEUE = new LinkedBlockingQueue<>(10000);
 
     @Value("${audio.save.path}")
     private String audioPath;
@@ -49,6 +55,28 @@ public class AudioProcessService {
     @PostConstruct
     public void init() {
         audioFormat = getAudioFormat();
+
+        new Thread(this::consume).start();
+    }
+
+    public void put(SocketMsg socketMsg) {
+        try {
+            MSG_QUEUE.put(socketMsg);
+        } catch (InterruptedException e) {
+            log.error("put socket msg error", e);
+        }
+    }
+
+    public void consume() {
+        for (;;) {
+            try {
+                SocketMsg socketMsg = MSG_QUEUE.take();
+
+                handleAudioData(socketMsg);
+            } catch (InterruptedException e) {
+                log.error("process socket msg error: ", e);
+            }
+        }
     }
 
     public void startToHandleAudio(AudioTransDto audioTrans) {
@@ -148,7 +176,10 @@ public class AudioProcessService {
                 startMilis = System.currentTimeMillis();
                 saveToFile = false;
 
-                audioTranslationService.translateAudio(audioTrans, filePath);
+                AudioInfo audioInfo = BeanUtil.copyProperties(audioTrans, AudioInfo.class);
+                audioInfo.setRawFilePath(filePath);
+
+                audioTranslationService.translateAudio(audioInfo);
             }
         } catch (Exception e) {
             log.error("handle audio data error: ", e);

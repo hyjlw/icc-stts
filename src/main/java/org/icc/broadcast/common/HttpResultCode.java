@@ -21,6 +21,9 @@ public enum HttpResultCode {
     SYSTEM_ERROR("50000", "系统内部错误"),
 
 
+    WS_INIT_ERROR("70100", "WS init "),
+
+
     ;
  
     /**

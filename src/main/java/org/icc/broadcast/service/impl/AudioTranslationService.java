@@ -5,7 +5,7 @@ import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.icc.broadcast.dto.AudioTransDto;
+import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.pool.ThreadPoolExecutorFactory;
 import org.springframework.stereotype.Service;
 
@@ -24,11 +24,12 @@ public class AudioTranslationService {
 
     private final AudioGenerateService audioGenerateService;
 
-    public void translateAudio(AudioTransDto audioTrans, String filePath) {
-        log.info("start to translate audio: {} to {}", filePath, audioTrans.getDestLang());
+    public void translateAudio(AudioInfo audioInfo) {
+        log.info("start to translate audio: {}", audioInfo);
 
-        String srcLang = audioTrans.getSrcLang();
-        String destLang = audioTrans.getDestLang();
+        String srcLang = audioInfo.getSrcLang();
+        String destLang = audioInfo.getDestLang();
+        String filePath = audioInfo.getRawFilePath();
 
         SINGLE_POOL.execute(() -> {
             String parentDir = FileUtil.getParent(filePath, 1);
@@ -44,16 +45,24 @@ public class AudioTranslationService {
                 return;
             }
 
+            audioInfo.setTextStartTime(System.currentTimeMillis());
+
             String destText = speechRecognitionService.translateSpeechAsync(srcLang, destLang, convFilePath);
             log.info("translated to dest lang: {}, text: {}", destLang, destText);
+
+            audioInfo.setTextEndTime(System.currentTimeMillis());
+
+            log.info("time elapsed for recognition: {} ms", (audioInfo.getTextEndTime() - audioInfo.getTextStartTime()));
 
             if(StringUtils.isBlank(destText)) {
                 log.warn("No text recognized from file: {}", convFileName);
                 return;
             }
 
+            audioInfo.setDestText(destText);
+            audioInfo.setRawDuration(ffmpegService.getDuration(filePath));
 
-            audioGenerateService.generateAudio(audioTrans, fileName, destText);
+            audioGenerateService.generateAudio(audioInfo);
         });
 
     }

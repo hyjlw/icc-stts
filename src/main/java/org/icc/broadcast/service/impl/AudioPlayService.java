@@ -2,7 +2,7 @@ package org.icc.broadcast.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.icc.broadcast.dto.AudioTransDto;
+import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.pool.ThreadPoolExecutorFactory;
 import org.springframework.stereotype.Service;
 
@@ -20,30 +20,26 @@ public class AudioPlayService {
 
     private static final Executor SINGLE_POOL = ThreadPoolExecutorFactory.getSingle(1000);
 
-    public void playAudio(AudioTransDto audioTrans, String filePath) {
-        log.info("start to play audio: {} to {}", filePath, audioTrans.getDestLang());
+    public void playAudio(AudioInfo audioInfo) {
+        log.info("start to play audio: {}", audioInfo);
 
-        String srcLang = audioTrans.getSrcLang();
-        String destLang = audioTrans.getDestLang();
-        String sessionId = audioTrans.getSessionId();
-        String audioModel = audioTrans.getDestModel();
-
+        String destFilePath = audioInfo.getDestFilePath();
         SINGLE_POOL.execute(() -> {
             try {
                 Clip clip = AudioSystem.getClip();
 
-                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(filePath));
+                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(destFilePath));
                 clip.open(audioInputStream);
 
                 clip.start();
 
                 // sleep
-                TimeUnit.MILLISECONDS.sleep(5000);
+                TimeUnit.MILLISECONDS.sleep(audioInfo.getRawDuration());
 
                 clip.stop();
                 clip.close();
             } catch (LineUnavailableException | UnsupportedAudioFileException | IOException | InterruptedException e) {
-                throw new RuntimeException(e);
+                log.warn("play audio: {} error: {}", destFilePath, e.getMessage());
             }
         });
     }

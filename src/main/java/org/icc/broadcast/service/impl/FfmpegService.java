@@ -27,7 +27,7 @@ public class FfmpegService {
      * @param filePath video full path
      * @return seconds
      */
-    public double getDuration(String filePath) {
+    public long getDuration(String filePath) {
         try {
             FFprobe ffprobe = new FFprobe(ffprobePath);
             FFmpegProbeResult probeResult = ffprobe.probe(filePath);
@@ -35,7 +35,7 @@ public class FfmpegService {
             FFmpegFormat format = probeResult.getFormat();
             double duration = format.duration;
 
-            return duration;
+            return Double.valueOf(duration).longValue();
         } catch (Exception e) {
             log.error("get file: {} duration error: {}", filePath, e.getMessage());
         }
@@ -293,19 +293,19 @@ public class FfmpegService {
             };
             //, "-shortest", "-af", "apad"
             Process process = runtime.exec(command);
-            log.info("Process" + process);
+            log.info("[stretchAudio]Process {}", process);
             int exitValue = process.waitFor();
-            log.info("Started audio stretch with exit code: {}", exitValue);
+            log.info("[stretchAudio]Started audio stretch with exit code: {}", exitValue);
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            log.info("stdInput" + stdInput.readLine());
+            log.info("[stretchAudio]stdInput {}", stdInput.readLine());
             BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            log.info("stdError" + stdError);
+            log.info("[stretchAudio]stdError {}", stdError);
 
             // read the output from the command
             StringBuilder normalOutputBuffer = new StringBuilder();
             String line;
             while ((line = stdInput.readLine()) != null) {
-                log.info("This is ffmpeg try  while block");
+                log.info("[stretchAudio]This is ffmpeg try  while block");
                 normalOutputBuffer.append(line);
                 if (!line.contains("Done:")) {
                     normalOutputBuffer.append("\n");
@@ -313,7 +313,7 @@ public class FfmpegService {
 
             }
             if (!normalOutputBuffer.toString().isEmpty()) {
-                log.debug("stretchAudio generation ended successfully. \n {}", normalOutputBuffer.toString());
+                log.debug("[stretchAudio]stretchAudio generation ended successfully. \n {}", normalOutputBuffer.toString());
             }
 
             // read any errors from the command
@@ -323,12 +323,12 @@ public class FfmpegService {
                 errorOutputBuffer.append("\n");
             }
             if (!errorOutputBuffer.toString().isEmpty()) {
-                log.debug("stretchAudio generation ended with failure. \n {}", errorOutputBuffer.toString());
+                log.debug("[stretchAudio]stretchAudio generation ended with failure. \n {}", errorOutputBuffer.toString());
             }
 
             return true;
         } catch (Exception e) {
-            log.error("stretchAudio error", e);
+            log.error("[stretchAudio]stretchAudio error", e);
         }
 
         return false;

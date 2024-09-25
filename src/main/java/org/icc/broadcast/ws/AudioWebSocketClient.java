@@ -51,7 +51,7 @@ public class AudioWebSocketClient extends WebSocketClient{
         }
 
         SocketMsg socketMsg = JSONObject.parseObject(msg, SocketMsg.class);
-        getService().handleAudioData(socketMsg);
+        getService().put(socketMsg);
     }
 
     private AudioProcessService getService() {
