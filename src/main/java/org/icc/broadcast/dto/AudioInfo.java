@@ -18,12 +18,20 @@ public class AudioInfo {
 
     private String rawFilePath;
     private String rawText;
+
+    /**
+     * unit is millisecond
+     */
     private long rawDuration;
 
-    private Boolean generated;
+    private boolean generated;
 
     private String destFilePath;
     private String destText;
+
+    /**
+     * unit is millisecond
+     */
     private long destDuration;
 
     private long textStartTime;

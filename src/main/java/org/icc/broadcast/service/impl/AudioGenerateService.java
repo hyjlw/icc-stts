@@ -80,6 +80,11 @@ public class AudioGenerateService {
                 }
             }
 
+            // set dest duration first;
+            audioInfo.setDestDuration(ffmpegService.getDuration(audioInfo.getDestFilePath()));
+
+            audioInfo.setGenerated(true);
+
             audioPlayService.playAudio(audioInfo);
         });
     }

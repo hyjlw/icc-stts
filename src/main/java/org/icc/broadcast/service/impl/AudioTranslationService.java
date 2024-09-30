@@ -32,6 +32,9 @@ public class AudioTranslationService {
         String filePath = audioInfo.getRawFilePath();
 
         SINGLE_POOL.execute(() -> {
+            // set raw duration first;
+            audioInfo.setRawDuration(ffmpegService.getDuration(filePath));
+
             String parentDir = FileUtil.getParent(filePath, 1);
             String fileName = FileUtil.getName(filePath);
 
@@ -60,7 +63,6 @@ public class AudioTranslationService {
             }
 
             audioInfo.setDestText(destText);
-            audioInfo.setRawDuration(ffmpegService.getDuration(filePath));
 
             audioGenerateService.generateAudio(audioInfo);
         });

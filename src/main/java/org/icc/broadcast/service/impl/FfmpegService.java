@@ -25,7 +25,7 @@ public class FfmpegService {
     /**
      * get the video duration
      * @param filePath video full path
-     * @return seconds
+     * @return milliseconds
      */
     public long getDuration(String filePath) {
         try {
@@ -33,7 +33,7 @@ public class FfmpegService {
             FFmpegProbeResult probeResult = ffprobe.probe(filePath);
 
             FFmpegFormat format = probeResult.getFormat();
-            double duration = format.duration;
+            double duration = format.duration * 1000;
 
             return Double.valueOf(duration).longValue();
         } catch (Exception e) {

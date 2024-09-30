@@ -26,18 +26,24 @@ public class AudioPlayService {
         String destFilePath = audioInfo.getDestFilePath();
         SINGLE_POOL.execute(() -> {
             try {
-                Clip clip = AudioSystem.getClip();
+                if(audioInfo.isGenerated()) {
+                    Clip clip = AudioSystem.getClip();
 
-                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(destFilePath));
-                clip.open(audioInputStream);
+                    AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(destFilePath));
+                    clip.open(audioInputStream);
 
-                clip.start();
+                    log.info("start to play audio: {}, raw duration: {} ms, dest duration: {} ms", destFilePath, audioInfo.getRawDuration(), audioInfo.getDestDuration());
+                    clip.start();
 
-                // sleep
-                TimeUnit.MILLISECONDS.sleep(audioInfo.getRawDuration());
+                    // sleep
+                    TimeUnit.MILLISECONDS.sleep(audioInfo.getRawDuration());
 
-                clip.stop();
-                clip.close();
+                    clip.stop();
+                    clip.close();
+                } else {
+                    // sleep
+                    TimeUnit.MILLISECONDS.sleep(audioInfo.getRawDuration());
+                }
             } catch (LineUnavailableException | UnsupportedAudioFileException | IOException | InterruptedException e) {
                 log.warn("play audio: {} error: {}", destFilePath, e.getMessage());
             }
