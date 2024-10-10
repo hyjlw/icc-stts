@@ -1,5 +1,5 @@
 server:
-  port: 8866
+  port: 8097
   servlet:
     context-path: /
 
@@ -45,26 +45,25 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
   redis:
-    host: 192.168.3.161
-    port: 6379
-    database: 0
-    #    password:
-    lettuce:
-      pool:
-        # 连接池最大连接数（使用负值表示没有限制） 默认 8
-        max-active: 8
-        # 连接池最大阻塞等待时间（使用负值表示没有限制） 默认 -1
-        max-wait: -1
-        # 连接池中的最大空闲连接 默认 8
-        max-idle: 8
-        # 连接池中的最小空闲连接 默认 0
-        min-idle: 2
+    cluster:
+      nodes: 192.168.3.161:6379,192.168.3.161:6380,192.168.3.162:6379,192.168.3.162:6380,192.168.3.163:6379,192.168.3.163:6380
+      max-redirects: 3
+      lettuce:
+        pool:
+          max-idle: 16
+          max-active: 32
+          min-idle: 8
 
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.3.161:8848
+        namespace: icc-cloud
+        username: nacos
+        password: nacos
 
 logging:
-#  level:
-#    net.ai1818.notification: debug
-  config: classpath:logback-dev.xml
+  config: classpath:logback.xml
 
 management:
   endpoints:
@@ -119,7 +118,7 @@ video:
 
 audio:
   socket:
-    url: ws://localhost:8811/icc-audio/ws/audio/icc-stts
+    url: ws://localhost:8087/icc-audio/ws/audio/icc-stts
   save:
     path: C:/dev/files
   trans:

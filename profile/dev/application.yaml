@@ -1,11 +1,14 @@
 server:
-  port: 9911
+  port: 8097
   servlet:
     context-path: /
 
 spring:
   application:
     name: icc-broadcast-trans
+  data:
+    mongodb:
+      uri: mongodb://192.168.3.161:27017,192.168.3.162:27017,192.168.3.163:27017/ICCDB
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -42,26 +45,27 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
   redis:
-    host: 192.168.3.161
-    port: 6379
-    database: 0
-    #    password:
-    lettuce:
-      pool:
-        # 连接池最大连接数（使用负值表示没有限制） 默认 8
-        max-active: 8
-        # 连接池最大阻塞等待时间（使用负值表示没有限制） 默认 -1
-        max-wait: -1
-        # 连接池中的最大空闲连接 默认 8
-        max-idle: 8
-        # 连接池中的最小空闲连接 默认 0
-        min-idle: 2
+    cluster:
+      nodes: 192.168.3.161:6379,192.168.3.161:6380,192.168.3.162:6379,192.168.3.162:6380,192.168.3.163:6379,192.168.3.163:6380
+      max-redirects: 3
+      lettuce:
+        pool:
+          max-idle: 16
+          max-active: 32
+          min-idle: 8
 
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.3.161:8848
+        namespace: icc-cloud
+        username: nacos
+        password: nacos
 
 logging:
-  #  level:
-  #    net.ai1818.notification: debug
-  config: classpath:logback-prod.xml
+#  level:
+#    net.ai1818.notification: debug
+  config: classpath:logback.xml
 
 management:
   endpoints:
@@ -90,13 +94,13 @@ mybatis-plus:
 
 file:
   download:
-    dir: /home/weilin/ftp/hls
+    dir: C:/dev/files
   video:
-    dir: /home/weilin/ftp/hls
+    dir: C:/dev/videos
   generated:
-    dir: /home/weilin/ftp/generates
+    dir: C:/dev/generates
   broadcast:
-    dir: /home/weilin/ftp/hls_nt
+    dir: C:/dev/hls_nt
     index-file: index.m3u8
 
 
@@ -109,3 +113,15 @@ ffmpeg:
   path:
     main: ffmpeg
     probe: ffprobe
+
+video:
+  streaming:
+    url: rtmp://192.168.3.196:1936/hls_my
+
+audio:
+  socket:
+    url: ws://localhost:8087/icc-audio/ws/audio/icc-stts
+  save:
+    path: C:/dev/files
+  trans:
+    path: C:/dev/trans

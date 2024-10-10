@@ -1,15 +1,18 @@
 server:
-  port: 8866
+  port: 8097
   servlet:
     context-path: /
 
 spring:
   application:
     name: icc-broadcast-trans
+  data:
+    mongodb:
+      uri: mongodb://192.168.1.196:27017/ICCDB
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.3.161:3306/iccdb?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false
+    url: jdbc:mysql://192.168.1.196:33060/iccdb?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false
     username: root
     password: admin.123
   jackson:
@@ -19,7 +22,7 @@ spring:
       write-dates-as-timestamps: false
 
   kafka:
-    bootstrap-servers: 192.168.3.161:9092
+    bootstrap-servers: 192.168.1.196:19094
     listener:
       ack-mode: manual
     producer:
@@ -42,10 +45,10 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
   redis:
-    host: 192.168.3.161
-    port: 6379
+    host: 192.168.1.196
+    port: 16379
     database: 0
-    #    password:
+    password: icc#2024
     lettuce:
       pool:
         # 连接池最大连接数（使用负值表示没有限制） 默认 8
@@ -59,9 +62,9 @@ spring:
 
 
 logging:
-  #  level:
-  #    net.ai1818.notification: debug
-  config: classpath:logback-preview.xml
+#  level:
+#    net.ai1818.notification: debug
+  config: classpath:logback.xml
 
 management:
   endpoints:
@@ -91,6 +94,13 @@ mybatis-plus:
 file:
   download:
     dir: C:/dev/files
+  video:
+    dir: C:/dev/videos
+  generated:
+    dir: C:/dev/generates
+  broadcast:
+    dir: C:/dev/hls_nt
+    index-file: index.m3u8
 
 
 ms:
@@ -102,3 +112,15 @@ ffmpeg:
   path:
     main: ffmpeg
     probe: ffprobe
+
+video:
+  streaming:
+    url: rtmp://192.168.3.196:1936/hls_my
+
+audio:
+  socket:
+    url: ws://192.168.1.73:88087/icc-audio/ws/audio/icc-stts
+  save:
+    path: C:/dev/files
+  trans:
+    path: C:/dev/trans

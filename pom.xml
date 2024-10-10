@@ -8,13 +8,14 @@
 		<version>2.7.14</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.ai1268</groupId>
+	<groupId>org.icc.broadcast</groupId>
 	<artifactId>icc-stts</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>openim-ai</name>
-	<description>openim-ai project</description>
+	<name>icc-stts</name>
+	<packaging>war</packaging>
+	<description>icc-stts project</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>17</java.version>
 		<maven.test.skip>true</maven.test.skip>
 		<tests.skip>true</tests.skip>
 	</properties>
@@ -203,11 +204,11 @@
 			<version>1.1.22</version>
 		</dependency>
 
-
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-loadbalancer</artifactId>
@@ -237,12 +238,12 @@
 			<version>0.8.0</version>
 		</dependency>
 
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -275,5 +276,35 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>${basedir}/profile/dev</directory>
+						<includes>
+							<include>**/**</include>
+						</includes>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+
+		<profile>
+			<id>prod</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>${basedir}/profile/prod</directory>
+						<includes>
+							<include>**/**</include>
+						</includes>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

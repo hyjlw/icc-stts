@@ -178,6 +178,7 @@ public class AudioProcessService {
 
                 AudioInfo audioInfo = BeanUtil.copyProperties(audioTrans, AudioInfo.class);
                 audioInfo.setRawFilePath(filePath);
+                audioInfo.setGenerated(false);
 
                 audioTranslationService.translateAudio(audioInfo);
             }

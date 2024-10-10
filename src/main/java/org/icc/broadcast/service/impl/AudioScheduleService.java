@@ -22,7 +22,6 @@ public class AudioScheduleService {
     private String socketUrl;
 
     private AudioWebSocketClient audioWebSocketClient;
-
     private final AudioProcessService audioProcessService;
 
     @PostConstruct
