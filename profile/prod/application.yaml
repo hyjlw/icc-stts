@@ -62,8 +62,6 @@ spring:
 
 
 logging:
-#  level:
-#    net.ai1818.notification: debug
   config: classpath:logback.xml
 
 management:
@@ -93,13 +91,13 @@ mybatis-plus:
 
 file:
   download:
-    dir: C:/dev/files
+    dir: D:/ICC-APP/ICC-STTS/files
   video:
-    dir: C:/dev/videos
+    dir: D:/ICC-APP/ICC-STTS/videos
   generated:
-    dir: C:/dev/generates
+    dir: D:/ICC-APP/ICC-STTS/generates
   broadcast:
-    dir: C:/dev/hls_nt
+    dir: D:/ICC-APP/ICC-STTS/hls_nt
     index-file: index.m3u8
 
 
@@ -115,12 +113,12 @@ ffmpeg:
 
 video:
   streaming:
-    url: rtmp://192.168.3.196:1936/hls_my
+    url: rtmp://192.168.1.196:1935/hls_my
 
 audio:
   socket:
-    url: ws://192.168.1.73:88087/icc-audio/ws/audio/icc-stts
+    url: ws://192.168.1.236:8186/icc-audio/ws/audio/icc-stts
   save:
-    path: C:/dev/files
+    path: D:/ICC-APP/ICC-STTS/files
   trans:
-    path: C:/dev/trans
+    path: D:/ICC-APP/ICC-STTS/trans
