@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/audio")
+@RequestMapping("/icc-stts/audio")
 @RequiredArgsConstructor
 public class AudioTransController {
 

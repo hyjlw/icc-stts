@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/session")
+@RequestMapping("/icc-stts/session")
 @RequiredArgsConstructor
 public class SessionTransController {
 

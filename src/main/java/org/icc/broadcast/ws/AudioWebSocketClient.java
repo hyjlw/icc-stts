@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.icc.broadcast.service.impl.AudioProcessService;
+import org.icc.broadcast.service.impl.AudioScheduleService;
 import org.icc.broadcast.utils.SpringContextHolder;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -30,12 +31,19 @@ public class AudioWebSocketClient extends WebSocketClient{
 
     @Override
     public void onClose(int arg0, String arg1, boolean arg2) {
-        log.info("------ MyWebSocket onClose ------");
+        log.info("------ AudioWebSocketClient onClose ------");
+
+        AudioScheduleService audioScheduleService = SpringContextHolder.getBean(AudioScheduleService.class);
+        if(audioScheduleService == null) {
+            return;
+        }
+
+        audioScheduleService.setStarted(false);
     }
 
     @Override
     public void onError(Exception arg0) {
-        log.info("------ MyWebSocket onError ------");
+        log.info("------ AudioWebSocketClient onError ------");
     }
 
     @Override

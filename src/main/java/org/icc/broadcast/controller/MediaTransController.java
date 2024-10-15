@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/media")
+@RequestMapping("/icc-stts/media")
 @RequiredArgsConstructor
 public class MediaTransController {
 
