@@ -29,7 +29,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 @RequiredArgsConstructor
 public class AudioProcessService {
 
-    private final static int WEIGHT = 2;
+    private final static int WEIGHT = -1;
+    private final static double SILENT_THRES = 4.0;
 
     private final static BlockingQueue<SocketMsg> MSG_QUEUE = new LinkedBlockingQueue<>(10000);
 
@@ -115,7 +116,10 @@ public class AudioProcessService {
             if (Math.abs(fragment[fLen - 1]) > WEIGHT || baos.size() > 0) {
                 baos.write(fragment);
 
-                if (Math.abs(fragment[fLen - 1]) <= WEIGHT) {
+                double volumeRMS = volumeRMS(fragment);
+                log.debug("current byte data volume rms: {}", volumeRMS);
+
+                if (volumeRMS < SILENT_THRES) {
                     if (!silent) {
                         silent = true;
                         startSilentMilis = System.currentTimeMillis();
@@ -217,4 +221,25 @@ public class AudioProcessService {
         // true,false
         return new AudioFormat(sampleRate, sampleSizeInBits, channels, signed, bigEndian);
     }// end getAudioFormat
+
+    private double volumeRMS(byte[] raw) {
+        long sum = 0L;
+        if (raw.length==0) {
+            return sum;
+        } else {
+            for (int ii=0; ii<raw.length; ii++) {
+                sum += raw[ii];
+            }
+        }
+        double average = (sum * 1.0) / raw.length;
+
+        double sumMeanSquare = 0d;
+        for (int ii=0; ii<raw.length; ii++) {
+            sumMeanSquare += Math.pow(raw[ii]-average, 2d);
+        }
+        double averageMeanSquare = sumMeanSquare/raw.length;
+        double rootMeanSquare = Math.sqrt(averageMeanSquare);
+
+        return rootMeanSquare;
+    }
 }
