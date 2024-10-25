@@ -3,7 +3,6 @@ package org.icc.broadcast.ws;
 import java.net.URI;
 
 import com.alibaba.fastjson.JSONObject;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.icc.broadcast.service.impl.AudioProcessService;
@@ -16,9 +15,6 @@ import org.java_websocket.handshake.ServerHandshake;
 public class AudioWebSocketClient extends WebSocketClient{
 
     private AudioProcessService audioProcessService;
-
-    @Setter
-    private volatile boolean flag;
  
     public AudioWebSocketClient(URI serverUri) {
          super(serverUri);
@@ -49,10 +45,6 @@ public class AudioWebSocketClient extends WebSocketClient{
     @Override
     public void onMessage(String msg) {
         log.debug("-------- 接收到服务端数据： {}--------", msg);
-
-        if(!flag) {
-            return;
-        }
 
         if(StringUtils.isBlank(msg)) {
             return;

@@ -20,9 +20,12 @@ public class BroadcastSession {
     public String srcLang;
     public String destLang;
     public String destModel;
+    public String gender;
     public Date startTime;
     public Date endTime;
     public Boolean started;
+    public String url;
+    public Date updateTime;
 
     public Date createAt = new Date();
 }

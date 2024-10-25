@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.icc.broadcast.common.HttpResultCode;
+import org.icc.broadcast.config.SttsConfig;
 import org.icc.broadcast.dto.AudioTransDto;
 import org.icc.broadcast.entity.BroadcastSession;
 import org.icc.broadcast.exception.BizException;
@@ -31,6 +32,8 @@ public class AudioScheduleService {
     private AudioWebSocketClient audioWebSocketClient;
     private final AudioProcessService audioProcessService;
     private final BroadcastSessionRepository broadcastSessionRepository;
+
+    private final SttsConfig sttsConfig;
 
     @Setter
     private volatile boolean started = false;
@@ -60,15 +63,16 @@ public class AudioScheduleService {
             } catch (URISyntaxException e) {
                 log.error("parse uri error, ", e);
 
-                throw  new BizException(HttpResultCode.WS_INIT_ERROR);
+                throw new BizException(HttpResultCode.WS_INIT_ERROR);
             }
         }
-        audioWebSocketClient.setFlag(true);
+
+        sttsConfig.setSttsStarted(true);
 
         this.started = true;
     }
 
-    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
+//    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
     public void checkSession() {
         if(this.started) {
             return;

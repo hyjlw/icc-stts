@@ -24,25 +24,44 @@ public class AudioPlayService {
         log.info("start to play audio: {}", audioInfo);
 
         String destFilePath = audioInfo.getDestFilePath();
+        String rawFilePath = audioInfo.getRawFilePath();
+        long rawDuration = audioInfo.getRawDuration();
+
         SINGLE_POOL.execute(() -> {
             try {
-                if(audioInfo.isGenerated()) {
+                if(audioInfo.isProcessed()) {
+                    if (audioInfo.isGenerated()) {
+                        Clip clip = AudioSystem.getClip();
+
+                        AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(destFilePath));
+                        clip.open(audioInputStream);
+
+                        log.info("start to play audio: {}, raw duration: {} ms, dest duration: {} ms", destFilePath, rawDuration, audioInfo.getDestDuration());
+                        clip.start();
+
+                        // sleep
+                        TimeUnit.MILLISECONDS.sleep(rawDuration);
+
+                        clip.stop();
+                        clip.close();
+                    } else {
+                        // sleep
+                        TimeUnit.MILLISECONDS.sleep(rawDuration);
+                    }
+                } else {
                     Clip clip = AudioSystem.getClip();
 
-                    AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(destFilePath));
+                    AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(rawFilePath));
                     clip.open(audioInputStream);
 
-                    log.info("start to play audio: {}, raw duration: {} ms, dest duration: {} ms", destFilePath, audioInfo.getRawDuration(), audioInfo.getDestDuration());
+                    log.info("start to play original audio: {}, raw duration: {} ms", rawFilePath, rawDuration);
                     clip.start();
 
                     // sleep
-                    TimeUnit.MILLISECONDS.sleep(audioInfo.getRawDuration());
+                    TimeUnit.MILLISECONDS.sleep(rawDuration);
 
                     clip.stop();
                     clip.close();
-                } else {
-                    // sleep
-                    TimeUnit.MILLISECONDS.sleep(audioInfo.getRawDuration());
                 }
             } catch (LineUnavailableException | UnsupportedAudioFileException | IOException | InterruptedException e) {
                 log.warn("play audio: {} error: {}", destFilePath, e.getMessage());

@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/icc-stts")
+@RequestMapping
 @RequiredArgsConstructor
 public class BroadcastSessionController {
 
@@ -39,7 +39,7 @@ public class BroadcastSessionController {
         return new ResponseEntity<>(page, HttpStatus.OK);
     }
 
-    @PostMapping("/sim-int/start")
+    @PutMapping("/sim-int/switch")
     public ResponseEntity<Object> startBroadcastSession(@RequestBody BroadcastSession broadcastSession) {
         CommonResp commonResp = broadcastSessionService.startBroadcastSession(broadcastSession);
 

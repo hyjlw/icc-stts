@@ -50,7 +50,7 @@ public class AudioProcessService {
 
     private AudioTransDto audioTrans;
 
-    private final AudioTranslationService audioTranslationService;
+    private final AudioDetermineService audioDetermineService;
 
     @PostConstruct
     public void init() {
@@ -179,8 +179,9 @@ public class AudioProcessService {
                 AudioInfo audioInfo = BeanUtil.copyProperties(audioTrans, AudioInfo.class);
                 audioInfo.setRawFilePath(filePath);
                 audioInfo.setGenerated(false);
+                audioInfo.setProcessed(false);
 
-                audioTranslationService.translateAudio(audioInfo);
+                audioDetermineService.determineAudio(audioInfo);
             }
         } catch (Exception e) {
             log.error("handle audio data error: ", e);

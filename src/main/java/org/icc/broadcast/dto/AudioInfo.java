@@ -24,6 +24,13 @@ public class AudioInfo {
      */
     private long rawDuration;
 
+    /**
+     * the audio has been processed
+     */
+    private boolean processed;
+    /**
+     * the audio has translated and generated
+     */
     private boolean generated;
 
     private String destFilePath;
