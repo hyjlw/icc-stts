@@ -277,34 +277,4 @@
 		</plugins>
 	</build>
 
-	<profiles>
-		<profile>
-			<id>dev</id>
-			<build>
-				<resources>
-					<resource>
-						<directory>${basedir}/profile/dev</directory>
-						<includes>
-							<include>**/**</include>
-						</includes>
-					</resource>
-				</resources>
-			</build>
-		</profile>
-
-		<profile>
-			<id>prod</id>
-			<build>
-				<resources>
-					<resource>
-						<directory>${basedir}/profile/prod</directory>
-						<includes>
-							<include>**/**</include>
-						</includes>
-					</resource>
-				</resources>
-			</build>
-		</profile>
-	</profiles>
-
 </project>

@@ -8,11 +8,11 @@ spring:
     name: icc-stts
   data:
     mongodb:
-      uri: mongodb://192.168.3.161:27017,192.168.3.162:27017,192.168.3.163:27017/ICCDB
+      uri: mongodb://192.168.1.196:37017/ICCDB
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.3.161:3306/iccdb?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false
+    url: jdbc:mysql://192.168.1.196:33060/iccdb?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false
     username: root
     password: admin.123
   jackson:
@@ -22,7 +22,7 @@ spring:
       write-dates-as-timestamps: false
 
   kafka:
-    bootstrap-servers: 192.168.3.161:9092
+    bootstrap-servers: 192.168.1.196:19094
     listener:
       ack-mode: manual
     producer:
@@ -45,27 +45,24 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
   redis:
-    cluster:
-      nodes: 192.168.3.161:6379,192.168.3.161:6380,192.168.3.162:6379,192.168.3.162:6380,192.168.3.163:6379,192.168.3.163:6380
-      max-redirects: 3
-      lettuce:
-        pool:
-          max-idle: 16
-          max-active: 32
-          min-idle: 8
+    host: 192.168.1.196
+    port: 16379
+    database: 0
+    password: icc#2024
+    lettuce:
+      pool:
+        # 连接池最大连接数（使用负值表示没有限制） 默认 8
+        max-active: 8
+        # 连接池最大阻塞等待时间（使用负值表示没有限制） 默认 -1
+        max-wait: -1
+        # 连接池中的最大空闲连接 默认 8
+        max-idle: 8
+        # 连接池中的最小空闲连接 默认 0
+        min-idle: 2
 
-  cloud:
-    nacos:
-      discovery:
-        server-addr: 192.168.3.161:8848
-        namespace: icc-cloud
-        username: nacos
-        password: nacos
 
 logging:
-#  level:
-#    net.ai1818.notification: debug
-  config: classpath:logback.xml
+  config: classpath:logback-prod.xml
 
 management:
   endpoints:
@@ -94,13 +91,13 @@ mybatis-plus:
 
 file:
   download:
-    dir: C:/dev/files
+    dir: D:/ICC-APP/ICC-STTS/files
   video:
-    dir: C:/dev/videos
+    dir: D:/ICC-APP/ICC-STTS/videos
   generated:
-    dir: C:/dev/generates
+    dir: D:/ICC-APP/ICC-STTS/generates
   broadcast:
-    dir: C:/dev/hls_nt
+    dir: D:/ICC-APP/ICC-STTS/hls_nt
     index-file: index.m3u8
 
 
@@ -116,12 +113,12 @@ ffmpeg:
 
 video:
   streaming:
-    url: rtmp://192.168.3.196:1936/hls_my
+    url: rtmp://192.168.1.196:1935/hls_my
 
 audio:
   socket:
-    url: ws://localhost:8087/icc-audio/ws/audio/icc-stts
+    url: ws://192.168.1.236:8186/icc-audio/ws/audio/icc-stts
   save:
-    path: C:/dev/files
+    path: D:/ICC-APP/ICC-STTS/files
   trans:
-    path: C:/dev/trans
+    path: D:/ICC-APP/ICC-STTS/trans

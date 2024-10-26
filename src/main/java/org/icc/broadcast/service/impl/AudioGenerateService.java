@@ -83,6 +83,7 @@ public class AudioGenerateService {
                 // set dest duration first;
                 audioInfo.setDestDuration(ffmpegService.getDuration(audioInfo.getDestFilePath()));
                 audioInfo.setGenerated(true);
+                audioInfo.setProcessed(true);
             } finally {
                 audioPlayService.playAudio(audioInfo);
             }

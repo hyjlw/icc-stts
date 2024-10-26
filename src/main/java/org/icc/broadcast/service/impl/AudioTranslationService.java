@@ -34,9 +34,6 @@ public class AudioTranslationService {
             boolean processed = false;
 
             try {
-                // set raw duration first;
-                audioInfo.setRawDuration(ffmpegService.getDuration(filePath));
-
                 String parentDir = FileUtil.getParent(filePath, 1);
                 String fileName = FileUtil.getName(filePath);
 

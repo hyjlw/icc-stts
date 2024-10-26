@@ -45,6 +45,7 @@ public class AudioScheduleService {
         log.info("started ws client: {}", client);
 
         this.audioWebSocketClient = client;
+        audioProcessService.startToHandleAudio(AudioTransDto.builder().sessionId(System.currentTimeMillis() + "").build());
     }
 
     public void startSession(AudioTransDto audioTransDto) {
@@ -72,31 +73,22 @@ public class AudioScheduleService {
         this.started = true;
     }
 
-//    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
+    public void stopSession() {
+        sttsConfig.setSttsStarted(false);
+        this.started = false;
+    }
+
+    @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
     public void checkSession() {
-        if(this.started) {
+        if(!started) {
             return;
         }
 
-        BroadcastSession session = broadcastSessionRepository.findOneBy(new Criteria());
+        BroadcastSession session = broadcastSessionRepository.findOneBy(Criteria.where("started").is(true));
         if(session == null) {
             return;
         }
 
-        if(!session.getStarted()) {
-            return;
-        }
-
-        Date now = new Date();
-        if(now.compareTo(session.getEndTime()) > 0 || now.compareTo(session.getStartTime()) < 0) {
-            return;
-        }
-
-        this.startSession(AudioTransDto.builder()
-                .sessionId(session.getId().toHexString())
-                .srcLang(session.getSrcLang())
-                .destLang(session.getDestLang())
-                .destModel(session.getDestModel())
-                .build());
+        broadcastSessionRepository.updateTime(session.getId(), new Date());
     }
 }

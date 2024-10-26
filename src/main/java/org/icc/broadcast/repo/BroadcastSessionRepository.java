@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -45,6 +46,12 @@ public class BroadcastSessionRepository extends AbstractRepository<BroadcastSess
         Query q = new Query(Criteria.where("_id").is(id));
 
         this.mongoTemplate.updateFirst(q, new Update().set("started", started), BroadcastSession.class);
+    }
+
+    public void updateTime(ObjectId id, Date dateTime) {
+        Query q = new Query(Criteria.where("_id").is(id));
+
+        this.mongoTemplate.updateFirst(q, new Update().set("updateTime", dateTime), BroadcastSession.class);
     }
 
     public void remove(String id) {

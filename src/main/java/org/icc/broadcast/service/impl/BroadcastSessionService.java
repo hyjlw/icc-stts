@@ -63,30 +63,27 @@ public class BroadcastSessionService {
         return new PageImpl<>(broadcastSessions, pageable, total);
     }
 
-    public CommonResp startBroadcastSession(BroadcastSession broadcastSession) {
-        log.info("start broadcast session: {}", broadcastSession);
+    public CommonResp switchBroadcastSession(BroadcastSession broadcastSession) {
+        log.info("switch broadcast session: {}", broadcastSession);
         BroadcastSession session = broadcastSessionRepository.findById(broadcastSession.getId());
         if(session == null) {
             throw new BizException("No session found");
         }
 
-        Date now = new Date();
-        if(now.compareTo(session.getEndTime()) > 0 || now.compareTo(session.getStartTime()) < 0) {
-            throw new BizException("Session is out of time range");
+        if(broadcastSession.started) {
+            audioScheduleService.startSession(AudioTransDto.builder()
+                    .sessionId(session.getId().toHexString())
+                    .srcLang(session.getSrcLang())
+                    .destLang(session.getDestLang())
+                    .destModel(session.getDestModel())
+                    .build());
+
+            broadcastSessionRepository.updateStarted(session.getId(), true);
+            broadcastSessionRepository.updateTime(session.getId(), new Date());
+        } else {
+            audioScheduleService.stopSession();
+            broadcastSessionRepository.updateStarted(session.getId(), false);
         }
-
-        if(session.getStarted()) {
-            throw new BizException("Session has been started");
-        }
-
-        audioScheduleService.startSession(AudioTransDto.builder()
-                        .sessionId(session.getId().toHexString())
-                        .srcLang(session.getSrcLang())
-                        .destLang(session.getDestLang())
-                        .destModel(session.getDestModel())
-                .build());
-
-        broadcastSessionRepository.updateStarted(session.getId(), true);
 
         return CommonResp.builder().msg("ok").success(true).data(broadcastSession.getId().toHexString()).build();
     }

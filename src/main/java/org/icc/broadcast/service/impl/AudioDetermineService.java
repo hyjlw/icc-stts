@@ -14,15 +14,18 @@ import java.util.concurrent.Executor;
 @RequiredArgsConstructor
 public class AudioDetermineService {
 
-    private static final Executor SINGLE_POOL = ThreadPoolExecutorFactory.getSingle(1000);
-
     private final AudioTranslationService audioTranslationService;
     private final AudioPlayService audioPlayService;
+
+    private final FfmpegService ffmpegService;
 
     private final SttsConfig sttsConfig;
 
     public void determineAudio(AudioInfo audioInfo) {
         log.info("start to determine audio: {}", audioInfo);
+
+        // set raw duration first;
+        audioInfo.setRawDuration(ffmpegService.getDuration(audioInfo.getRawFilePath()));
 
         if(sttsConfig.isSttsStarted()) {
             audioTranslationService.translateAudio(audioInfo);

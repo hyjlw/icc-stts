@@ -41,7 +41,7 @@ public class BroadcastSessionController {
 
     @PutMapping("/sim-int/switch")
     public ResponseEntity<Object> startBroadcastSession(@RequestBody BroadcastSession broadcastSession) {
-        CommonResp commonResp = broadcastSessionService.startBroadcastSession(broadcastSession);
+        CommonResp commonResp = broadcastSessionService.switchBroadcastSession(broadcastSession);
 
         return new ResponseEntity<>(commonResp, HttpStatus.CREATED);
     }

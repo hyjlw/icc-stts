@@ -118,7 +118,7 @@ video:
 
 audio:
   socket:
-    url: ws://localhost:8087/icc-audio/ws/audio/icc-stts
+    url: ws://localhost:8186/ws/audio/icc-stts
   save:
     path: C:/dev/files
   trans:

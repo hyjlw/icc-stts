@@ -1,7 +1,9 @@
 package org.icc.broadcast.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
 import org.bson.types.ObjectId;
+import org.icc.broadcast.databind.ObjectIdSerializer;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -14,6 +16,7 @@ import java.util.Date;
 @Document(collection = "BroadcastSession")
 public class BroadcastSession {
     @Id
+    @JsonSerialize(using = ObjectIdSerializer.class)
     public ObjectId id;
     public String sessionName;
     public String author;
