@@ -20,7 +20,7 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class AudioGenerateService {
 
-    private static final Executor SINGLE_POOL = ThreadPoolExecutorFactory.getSingle(1000);
+    private static final Executor SYNTH_POOL = ThreadPoolExecutorFactory.get(10000);
 
     @Value("${audio.trans.path}")
     private String transPath;
@@ -36,7 +36,7 @@ public class AudioGenerateService {
         String sessionId = audioInfo.getSessionId();
         String audioModel = audioInfo.getDestModel();
 
-        SINGLE_POOL.execute(() -> {
+        SYNTH_POOL.execute(() -> {
             try {
                 String fileName = FileUtil.getName(audioInfo.getRawFilePath());
 
@@ -54,7 +54,8 @@ public class AudioGenerateService {
 
                 audioInfo.setSynthStartTime(System.currentTimeMillis());
 
-                speechRecognitionService.synthesizeTextToSpeech(destLang, audioModel, audioInfo.getDestText(), destFilePath);
+//                speechRecognitionService.synthesizeTextToSpeech(destLang, audioModel, audioInfo.getDestText(), destFilePath);
+                speechRecognitionService.synthesizeTextToSpeechSsml(destLang, audioModel, audioInfo.getDestText(), destFilePath);
 
                 audioInfo.setSynthEndTime(System.currentTimeMillis());
                 log.info("time elapsed for synthesis: {} ms", (audioInfo.getSynthEndTime() - audioInfo.getSynthStartTime()));
@@ -65,23 +66,23 @@ public class AudioGenerateService {
                 }
 
                 audioInfo.setDestFilePath(destFilePath);
-
                 long destDuration = ffmpegService.getDuration(destFilePath);
-                if (destDuration > audioInfo.getRawDuration()) {
-                    double atempo = 1.0 * destDuration / audioInfo.getRawDuration();
-                    if (atempo > 2) {
-                        atempo = 2.0;
-                    }
-                    String destStretchedFilePath = this.transPath + "/" + sessionId + "/" + "stretched_" + fileName;
-                    ffmpegService.stretchAudio(destFilePath, destStretchedFilePath, atempo);
 
-                    if (FileUtil.exist(destStretchedFilePath)) {
-                        audioInfo.setDestFilePath(destStretchedFilePath);
-                    }
-                }
+//                if (destDuration > audioInfo.getRawDuration()) {
+//                    double atempo = 1.0 * destDuration / audioInfo.getRawDuration();
+//                    if (atempo > 2) {
+//                        atempo = 2.0;
+//                    }
+//                    String destStretchedFilePath = this.transPath + "/" + sessionId + "/" + "stretched_" + fileName;
+//                    ffmpegService.stretchAudio(destFilePath, destStretchedFilePath, atempo);
+//
+//                    if (FileUtil.exist(destStretchedFilePath)) {
+//                        audioInfo.setDestFilePath(destStretchedFilePath);
+//                    }
+//                }
 
                 // set dest duration first;
-                audioInfo.setDestDuration(ffmpegService.getDuration(audioInfo.getDestFilePath()));
+                audioInfo.setDestDuration(destDuration);
                 audioInfo.setGenerated(true);
                 audioInfo.setProcessed(true);
             } finally {

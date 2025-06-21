@@ -93,6 +93,10 @@ ms:
     key: f0580668308c4e4b8e4e005b074d28c0
     region: southeastasia
 
+tts:
+  config:
+    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="10%" volume="120%">{content}</prosody></voice></speak>'
+
 ffmpeg:
   path:
     main: ffmpeg

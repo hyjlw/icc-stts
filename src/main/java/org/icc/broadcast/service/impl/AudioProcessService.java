@@ -32,7 +32,7 @@ public class AudioProcessService {
     private final static int WEIGHT = -1;
     private final static double SILENT_THRES = 4.0;
 
-    private final static BlockingQueue<SocketMsg> MSG_QUEUE = new LinkedBlockingQueue<>(10000);
+    private final static BlockingQueue<SocketMsg> MSG_QUEUE = new LinkedBlockingQueue<>(1000000);
 
     @Value("${audio.save.path}")
     private String audioPath;
@@ -46,6 +46,7 @@ public class AudioProcessService {
     boolean saveToFile = false;
     private boolean finished = false;
     private String curAudioPath;
+    private long timestamp;
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -109,6 +110,10 @@ public class AudioProcessService {
         byte[] fragment = socketMsg.getData();
         int fLen = fragment.length;
 
+        if (timestamp == 0) {
+            timestamp = socketMsg.getTimestamp();
+        }
+
         ByteArrayInputStream bais = null;
         AudioInputStream ais = null;
 
@@ -134,28 +139,28 @@ public class AudioProcessService {
                     long passedMils = curMilis - startMilis;
                     long silentMils = curMilis - startSilentMilis;
                     if (passedMils > 5000) {
-                        if (silentMils > 800) {
-                            log.info("5s, 0.8s silent, 停止录入");
+                        if (silentMils > 500) {
+                            log.info("5s, 0.s silent, 停止录入");
+                            saveToFile = true;
+                        }
+                    }
+                    if (passedMils > 7000) {
+                        if (silentMils > 200) {
+                            log.info("7s, 0.2s silent, 停止录入");
                             saveToFile = true;
                         }
                     }
                     if (passedMils > 8000) {
-                        if (silentMils > 500) {
-                            log.info("8s, 0.5s silent, 停止录入");
-                            saveToFile = true;
-                        }
-                    }
-                    if (passedMils > 10000) {
-                        if (silentMils > 200) {
-                            log.info("10s, 0.2s silent, 停止录入");
+                        if (silentMils > 100) {
+                            log.info("8s, 0.1s silent, 停止录入");
                             saveToFile = true;
                         }
                     }
                 }
 
                 curMilis = System.currentTimeMillis();
-                if (curMilis - startMilis > 15000) {
-                    log.info("15s停止录入");
+                if (curMilis - startMilis > 10000) {
+                    log.info("10s停止录入");
                     saveToFile = true;
                 }
             }
@@ -175,17 +180,25 @@ public class AudioProcessService {
                 ais.close();
                 bais.close();
 
-                baos.reset();
-                silent = false;
-                startMilis = System.currentTimeMillis();
-                saveToFile = false;
-
                 AudioInfo audioInfo = BeanUtil.copyProperties(audioTrans, AudioInfo.class);
                 audioInfo.setRawFilePath(filePath);
                 audioInfo.setGenerated(false);
                 audioInfo.setProcessed(false);
+                audioInfo.setTimestamp(timestamp);
+
+                long duration = curMilis - startMilis;
+                audioInfo.setRawDuration(duration);
+                audioInfo.setDestDuration(duration);
 
                 audioDetermineService.determineAudio(audioInfo);
+
+                // reset timestamp
+                this.timestamp = 0;
+
+                baos.reset();
+                silent = false;
+                startMilis = System.currentTimeMillis();
+                saveToFile = false;
             }
         } catch (Exception e) {
             log.error("handle audio data error: ", e);

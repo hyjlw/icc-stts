@@ -1,5 +1,6 @@
 package org.icc.broadcast.service.impl;
 
+import cn.hutool.crypto.digest.MD5;
 import org.icc.broadcast.reader.BinaryAudioStreamReader;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -16,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +37,9 @@ public class SpeechRecognitionService {
 
     @Value("${file.download.dir}")
     private String baseDir;
+
+    @Value("${tts.config.ssml}")
+    private String ttsSSML;
 
     /**
      * build the speech config
@@ -375,6 +380,35 @@ public class SpeechRecognitionService {
         }
     }
 
+    /**
+     *
+     * @param lang e.g zh-CN, en-US
+     * @param voiceName e.g zh-CN-YunfengNeural, en-US-DavisNeural
+     * @param text
+     * @return the file path
+     */
+    public void synthesizeTextToSpeechSsml(String lang, String voiceName, String text, String destFilePath) {
+        SpeechConfig speechConfig = buildSsmlSynthesizeSpeechConfig(lang, voiceName);
+        SpeechSynthesizer speechSynthesizer = null;
+        try {
+            speechSynthesizer = new SpeechSynthesizer(speechConfig, null);
+
+            String ssml = ttsSSML
+                    .replace("{lang}", lang)
+                    .replace("{voiceName}", voiceName)
+                    .replace("{content}", text);
+            SpeechSynthesisResult result = speechSynthesizer.SpeakSsml(ssml);
+            AudioDataStream stream = AudioDataStream.fromResult(result);
+            stream.saveToWavFile(destFilePath);
+        } catch (Exception e) {
+            log.error("text to speech ssml, error: {}", e.getMessage(), e);
+        } finally {
+            if(speechSynthesizer != null) {
+                speechSynthesizer.close();
+            }
+        }
+    }
+
     public SpeechConfig buildSynthesizeSpeechConfig(String lang, String voiceName) {
         SpeechConfig speechConfig = CONFIG_CACHE.getIfPresent(lang + "_" + voiceName);
 
@@ -386,6 +420,19 @@ public class SpeechRecognitionService {
             speechConfig.setSpeechSynthesisVoiceName(voiceName);
 
             CONFIG_CACHE.put(lang + "_" + voiceName, speechConfig);
+        }
+
+        return speechConfig;
+    }
+
+    public SpeechConfig buildSsmlSynthesizeSpeechConfig(String lang, String voiceName) {
+        String key = "ssml_" + lang + "_" + voiceName;
+        SpeechConfig speechConfig = CONFIG_CACHE.getIfPresent(key);
+
+        if(speechConfig == null) {
+            speechConfig = SpeechConfig.fromSubscription(speechKey, speechRegion);
+
+            CONFIG_CACHE.put(key, speechConfig);
         }
 
         return speechConfig;

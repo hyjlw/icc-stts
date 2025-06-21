@@ -18,7 +18,7 @@ public class ThreadPoolExecutorFactory{
     public static Executor get(Integer queueSize) {
         LocalThreadPoolTaskExecutor executor = new LocalThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(8);
+        executor.setMaxPoolSize(4);
         executor.setQueueCapacity(queueSize);
         executor.setKeepAliveSeconds(0);
         executor.initialize();

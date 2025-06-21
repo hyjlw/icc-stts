@@ -15,7 +15,7 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class AudioTranslationService {
 
-    private static final Executor SINGLE_POOL = ThreadPoolExecutorFactory.getSingle(1000);
+    private static final Executor TRANS_POOL = ThreadPoolExecutorFactory.get(10000);
 
     private final FfmpegService ffmpegService;
     private final SpeechRecognitionService speechRecognitionService;
@@ -30,7 +30,7 @@ public class AudioTranslationService {
         String destLang = audioInfo.getDestLang();
         String filePath = audioInfo.getRawFilePath();
 
-        SINGLE_POOL.execute(() -> {
+        TRANS_POOL.execute(() -> {
             boolean processed = false;
 
             try {

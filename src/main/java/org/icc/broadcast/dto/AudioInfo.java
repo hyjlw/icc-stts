@@ -46,4 +46,6 @@ public class AudioInfo {
 
     private long synthStartTime;
     private long synthEndTime;
+
+    private long timestamp;
 }
