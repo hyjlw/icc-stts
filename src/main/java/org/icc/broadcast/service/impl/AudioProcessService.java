@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.icc.broadcast.config.AudioSttsConfig;
 import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.dto.AudioTransDto;
 import org.icc.broadcast.ws.SocketMsg;
@@ -28,9 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Slf4j
 @RequiredArgsConstructor
 public class AudioProcessService {
-
     private final static int WEIGHT = -1;
-    private final static double SILENT_THRES = 4.0;
 
     private final static BlockingQueue<SocketMsg> MSG_QUEUE = new LinkedBlockingQueue<>(1000000);
 
@@ -53,6 +52,8 @@ public class AudioProcessService {
     private AudioTransDto audioTrans;
 
     private final AudioDetermineService audioDetermineService;
+
+    private final AudioSttsConfig audioSttsConfig;
 
     @PostConstruct
     public void init() {
@@ -83,9 +84,7 @@ public class AudioProcessService {
 
     public void startToHandleAudio(AudioTransDto audioTrans) {
         log.info("start to handle audio req: {}", audioTrans);
-
         this.audioTrans = audioTrans;
-
         curAudioPath = this.audioPath + "/" + audioTrans.getSessionId();
 
         if(!FileUtil.exist(curAudioPath)) {
@@ -122,9 +121,11 @@ public class AudioProcessService {
                 baos.write(fragment);
 
                 double volumeRMS = volumeRMS(fragment);
-                log.debug("current byte data volume rms: {}", volumeRMS);
+                if (Boolean.TRUE.equals(audioSttsConfig.getShowVolumeLog())) {
+                    log.info("current byte data volume rms: {}", volumeRMS);
+                }
 
-                if (volumeRMS < SILENT_THRES) {
+                if (volumeRMS < audioSttsConfig.getSilentWeight()) {
                     if (!silent) {
                         silent = true;
                         startSilentMilis = System.currentTimeMillis();

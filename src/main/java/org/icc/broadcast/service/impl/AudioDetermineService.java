@@ -5,11 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.icc.broadcast.config.SttsConfig;
 import org.icc.broadcast.dto.AudioInfo;
-import org.icc.broadcast.pool.ThreadPoolExecutorFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.Executor;
 
 @Service
 @Slf4j

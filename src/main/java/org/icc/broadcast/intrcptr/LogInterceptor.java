@@ -1,7 +1,7 @@
 package org.icc.broadcast.intrcptr;
 
 import org.icc.broadcast.constant.Constants;
-import org.icc.broadcast.mdc.ThreadMdcUtil;
+import org.icc.broadcast.utils.ThreadMdcUtil;
 import org.slf4j.MDC;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;

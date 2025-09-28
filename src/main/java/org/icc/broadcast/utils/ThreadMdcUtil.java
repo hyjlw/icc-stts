@@ -1,4 +1,4 @@
-package org.icc.broadcast.mdc;
+package org.icc.broadcast.utils;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.MDC;

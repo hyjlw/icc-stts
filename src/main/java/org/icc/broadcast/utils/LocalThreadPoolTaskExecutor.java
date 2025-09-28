@@ -1,6 +1,5 @@
-package org.icc.broadcast.pool;
+package org.icc.broadcast.utils;
 
-import org.icc.broadcast.mdc.ThreadMdcUtil;
 import org.slf4j.MDC;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 

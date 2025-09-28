@@ -9,8 +9,9 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "audio.stts")
 @RefreshScope
-public class AudioConfig {
+public class AudioSttsConfig {
 
-    private String silentWeight;
+    private Double silentWeight;
+    private Boolean showVolumeLog;
 
 }
