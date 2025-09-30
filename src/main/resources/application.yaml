@@ -70,10 +70,8 @@ mybatis-plus:
   global-config:
     # 逻辑删除配置
     db-config:
-      # 删除前
-      logic-not-delete-value: 1
       # 删除后
-      logic-delete-value: 0
+      logic-delete-value: 1
 
 
 file:
@@ -83,9 +81,6 @@ file:
     dir: C:/dev/videos
   generated:
     dir: C:/dev/generates
-  broadcast:
-    dir: C:/dev/hls_nt
-    index-file: index.m3u8
 
 
 ms:
@@ -101,10 +96,6 @@ ffmpeg:
   path:
     main: ffmpeg
     probe: ffprobe
-
-video:
-  streaming:
-    url: rtmp://192.168.3.196:1936/hls_my
 
 audio:
   socket:

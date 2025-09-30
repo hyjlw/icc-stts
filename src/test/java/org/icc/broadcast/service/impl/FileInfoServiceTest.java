@@ -18,21 +18,11 @@ import static org.icc.broadcast.constant.Constants.SRC_LANG;
 public class FileInfoServiceTest {
 
     @Resource
-    private StreamDownloadService streamDownloadService;
-    @Resource
     private SpeechRecognitionService speechRecognitionService;
 
     @Resource
     private FfmpegService ffmpegService;
-    @Resource
-    private StreamingService streamingService;
 
-    @Test
-    public void testGetFileInfo() {
-        List<String> files = streamDownloadService.listStreamFiles();
-
-        log.info("file info: {}", files);
-    }
 
     @Test
     public void testExtractAudio() {
@@ -64,13 +54,6 @@ public class FileInfoServiceTest {
     @Test
     public void testMerge() {
         ffmpegService.mergeAudioVideo("C:\\dev\\files\\-75-audio-generated.mp3", "C:\\dev\\files\\-75-video-without-audio.ts", "C:\\dev\\files\\-75-video-merged.ts");
-    }
-
-    @Test
-    public void testStreamVideo() {
-        streamingService.streamVideo("C:\\dev\\files\\-75-video-merged.ts");
-
-        log.info("done");
     }
 
     @Test

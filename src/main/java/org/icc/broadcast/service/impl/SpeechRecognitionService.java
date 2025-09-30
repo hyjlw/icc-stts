@@ -1,6 +1,5 @@
 package org.icc.broadcast.service.impl;
 
-import cn.hutool.crypto.digest.MD5;
 import org.icc.broadcast.reader.BinaryAudioStreamReader;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -17,7 +16,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -418,6 +416,7 @@ public class SpeechRecognitionService {
             // Set either the `SpeechSynthesisVoiceName` or `SpeechSynthesisLanguage`.
             speechConfig.setSpeechSynthesisLanguage(lang);
             speechConfig.setSpeechSynthesisVoiceName(voiceName);
+            speechConfig.setSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Riff24Khz16BitMonoPcm);
 
             CONFIG_CACHE.put(lang + "_" + voiceName, speechConfig);
         }

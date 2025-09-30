@@ -227,7 +227,7 @@ public class AudioProcessService {
         // 8000,11025,16000,22050,44100
         int sampleSizeInBits = 16;
         // 8,16
-        int channels = 2;
+        int channels = 1;
         // 1,2
         boolean signed = true;
         // true,false
