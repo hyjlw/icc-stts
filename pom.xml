@@ -12,7 +12,7 @@
 	<artifactId>icc-stts</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>icc-stts</name>
-	<packaging>jar</packaging>
+	<packaging>war</packaging>
 	<description>icc-stts project</description>
 	<properties>
 		<java.version>17</java.version>
@@ -276,5 +276,35 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>${basedir}/profile/dev</directory>
+						<includes>
+							<include>**/**</include>
+						</includes>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+
+		<profile>
+			<id>prod</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>${basedir}/profile/prod</directory>
+						<includes>
+							<include>**/**</include>
+						</includes>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

@@ -13,7 +13,7 @@ import javax.management.Query;
 import java.lang.management.ManagementFactory;
 import java.util.Set;
 
-//@Component
+@Component
 public class NacosConfig implements ApplicationRunner {
  
     @Autowired(required = false)
