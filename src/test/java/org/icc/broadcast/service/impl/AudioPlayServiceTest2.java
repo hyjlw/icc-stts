@@ -24,7 +24,7 @@ public class AudioPlayServiceTest2 {
     @Before
     public void before() {
         AudioFormat audioFormat = new AudioFormat(
-                16000, // Sample rate (samples per second)
+                24000, // Sample rate (samples per second)
                 16,    // Bits per sample
                 1,     // Number of channels (1 for mono, 2 for stereo)
                 true,  // Signed (true for signed PCM, false for unsigned)
@@ -62,7 +62,7 @@ public class AudioPlayServiceTest2 {
     public void testPlay() throws InterruptedException {
 //        String audioPath = "D:\\dev_space\\GPTDeskWorkspace\\f5-tts\\tests\\api_out_laoxue3.wav";
 //        String audioPath = "C:\\dev\\trans\\68440ba26dea1bc04fdacaa6\\voice_1750518796525.wav";
-        String audioPath = "C:\\dev\\files\\23456789231\\voice_1727618893283.wav";
+        String audioPath = "C:\\dev\\trans\\1759325221075.wav";
 
         this.doPlayAudio2(audioPath);
     }

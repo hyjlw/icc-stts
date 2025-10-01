@@ -1,6 +1,5 @@
 package org.icc.broadcast.service.impl;
 
-
 import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,23 +65,11 @@ public class AudioGenerateService {
                 }
 
                 audioInfo.setDestFilePath(destFilePath);
-                long destDuration = ffmpegService.getDuration(destFilePath);
-
-//                if (destDuration > audioInfo.getRawDuration()) {
-//                    double atempo = 1.0 * destDuration / audioInfo.getRawDuration();
-//                    if (atempo > 2) {
-//                        atempo = 2.0;
-//                    }
-//                    String destStretchedFilePath = this.transPath + "/" + sessionId + "/" + "stretched_" + fileName;
-//                    ffmpegService.stretchAudio(destFilePath, destStretchedFilePath, atempo);
-//
-//                    if (FileUtil.exist(destStretchedFilePath)) {
-//                        audioInfo.setDestFilePath(destStretchedFilePath);
-//                    }
-//                }
 
                 // set dest duration first;
-                audioInfo.setDestDuration(destDuration);
+//                long destDuration = ffmpegService.getDuration(destFilePath);
+//                audioInfo.setDestDuration(destDuration);
+
                 audioInfo.setGenerated(true);
                 audioInfo.setProcessed(true);
             } finally {

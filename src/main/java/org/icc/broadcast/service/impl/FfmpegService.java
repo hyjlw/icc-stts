@@ -289,7 +289,7 @@ public class FfmpegService {
         try {
             Runtime runtime = Runtime.getRuntime();
             String[] command = {
-                    ffmpegPath, "-i", audioPath, "-filter:a", "atempo=" + atempo, destPath, "-y"
+                    ffmpegPath, "-i", audioPath, "-filter:a", "atempo=" + atempo, "-ar", "24000", "-ac", "1", destPath, "-y"
             };
             //, "-shortest", "-af", "apad"
             Process process = runtime.exec(command);

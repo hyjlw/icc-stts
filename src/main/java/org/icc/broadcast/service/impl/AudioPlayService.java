@@ -10,7 +10,6 @@ import javax.sound.sampled.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -18,10 +17,10 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 public class AudioPlayService {
-    private PriorityBlockingQueue<AudioInfo> concurrentLinkedQueue = new PriorityBlockingQueue<>(100000, (o1, o2) -> Math.toIntExact(o1.getTimestamp() - o2.getTimestamp()));
+    private final PriorityBlockingQueue<AudioInfo> concurrentLinkedQueue = new PriorityBlockingQueue<>(100000, (o1, o2) -> Math.toIntExact(o1.getTimestamp() - o2.getTimestamp()));
 
     private final static int BUFFER_SIZE = 1024;
-    private final static int SAMPLE_RATE = 16000;
+    private final static int SAMPLE_RATE = 24000;
     private final static int BITS_PER_SAMPLE = 16;
     private final static int CHANNELS = 1;
 
