@@ -77,10 +77,6 @@ mybatis-plus:
 file:
   download:
     dir: C:/dev/files
-  video:
-    dir: C:/dev/videos
-  generated:
-    dir: C:/dev/generates
 
 
 ms:

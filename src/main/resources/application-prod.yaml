@@ -104,6 +104,10 @@ ffmpeg:
     main: ffmpeg
     probe: ffprob
 
+tts:
+  config:
+    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="10%" volume="120%">{content}</prosody></voice></speak>'
+
 audio:
   socket:
     url: ws://192.168.1.236:8186/icc-audio/ws/audio/icc-stts
