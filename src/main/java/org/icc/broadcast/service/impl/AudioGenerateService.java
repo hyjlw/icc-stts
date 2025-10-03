@@ -67,8 +67,26 @@ public class AudioGenerateService {
                 audioInfo.setDestFilePath(destFilePath);
 
                 // set dest duration first;
-//                long destDuration = ffmpegService.getDuration(destFilePath);
-//                audioInfo.setDestDuration(destDuration);
+                long destDuration = ffmpegService.getDuration(destFilePath);
+                audioInfo.setDestDuration(destDuration);
+
+                double atempo = 1.0 * destDuration / audioInfo.getRawDuration();
+                if (atempo > 1.2) {
+                    log.info("dest audio: {} length: {} is too long, will shorten it as the raw length: {}", destFilePath, destDuration, audioInfo.getRawDuration());
+
+                    if (atempo > 2) {
+                        atempo = 2.0;
+                    }
+                    String destStretchedFilePath = this.transPath + "/" + sessionId + "/" + "stretched_" + fileName;
+                    ffmpegService.stretchAudio(destFilePath, destStretchedFilePath, atempo);
+
+                    if (FileUtil.exist(destStretchedFilePath)) {
+                        audioInfo.setDestFilePath(destStretchedFilePath);
+
+                        long destDurationForGenedFile = ffmpegService.getDuration(destStretchedFilePath);
+                        audioInfo.setDestDuration(destDurationForGenedFile);
+                    }
+                }
 
                 audioInfo.setGenerated(true);
                 audioInfo.setProcessed(true);

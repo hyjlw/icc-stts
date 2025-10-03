@@ -305,7 +305,7 @@ public class FfmpegService {
             StringBuilder normalOutputBuffer = new StringBuilder();
             String line;
             while ((line = stdInput.readLine()) != null) {
-                log.info("[stretchAudio]This is ffmpeg try  while block");
+                log.info("[stretchAudio]This is ffmpeg try while block");
                 normalOutputBuffer.append(line);
                 if (!line.contains("Done:")) {
                     normalOutputBuffer.append("\n");
