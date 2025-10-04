@@ -76,6 +76,7 @@ public class FfmpegService {
                     .setInput(srcPath)
                     .overrideOutputFiles(true)
                     .addOutput(destPath)
+                    .setAudioChannels(1)
                     .setFormat("wav")
                     .setAudioCodec("pcm_s16le")
                     .setAudioBitRate(44_100).done()

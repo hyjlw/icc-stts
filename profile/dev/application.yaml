@@ -1,0 +1,112 @@
+server:
+  port: 8097
+  servlet:
+    context-path: /icc-stts
+
+spring:
+  application:
+    name: icc-stts
+
+  profiles:
+    active: dev
+
+  data:
+    mongodb:
+      uri: mongodb://192.168.3.161:27017,192.168.3.162:27017,192.168.3.163:27017/ICCDB
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.3.161:3306/iccdb?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false
+    username: root
+    password: admin.123
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    serialization:
+      write-dates-as-timestamps: false
+
+  kafka:
+    bootstrap-servers: 192.168.3.161:9092
+    listener:
+      ack-mode: manual
+    producer:
+      acks: -1
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      buffer-memory: 33554432
+      retries: 3
+
+    consumer: # consumer消费者
+      group-id: icc-stts-group # 默认的消费组ID
+      enable-auto-commit: false # 是否自动提交offset
+      auto-commit-interval: 100  # 提交offset延时(接收到消息后多久提交offset)
+
+      # earliest:当各分区下有已提交的offset时，从提交的offset开始消费；无提交的offset时，从头开始消费
+      # latest:当各分区下有已提交的offset时，从提交的offset开始消费；无提交的offset时，消费新产生的该分区下的数据
+      # none:topic各分区都存在已提交的offset时，从offset后开始消费；只要有一个分区不存在已提交的offset，则抛出异常
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+  redis:
+    cluster:
+      nodes: 192.168.3.161:6379,192.168.3.161:6380,192.168.3.162:6379,192.168.3.162:6380,192.168.3.163:6379,192.168.3.163:6380
+      max-redirects: 3
+      lettuce:
+        pool:
+          max-idle: 16
+          max-active: 32
+          min-idle: 8
+
+logging:
+  config: classpath:logback.xml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    auto-mapping-behavior: full
+    #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+  global-config:
+    # 逻辑删除配置
+    db-config:
+      # 删除后
+      logic-delete-value: 1
+
+
+file:
+  download:
+    dir: C:/dev/files
+
+
+ms:
+  speech:
+    key: f0580668308c4e4b8e4e005b074d28c0
+    region: southeastasia
+
+tts:
+  config:
+    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="10%" volume="120%">{content}</prosody></voice></speak>'
+
+ffmpeg:
+  path:
+    main: ffmpeg
+    probe: ffprobe
+
+audio:
+  socket:
+    url: ws://localhost:8186/ws/audio/icc-stts
+  save:
+    path: C:/dev/files
+  trans:
+    path: C:/dev/trans

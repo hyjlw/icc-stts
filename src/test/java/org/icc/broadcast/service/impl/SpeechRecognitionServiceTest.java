@@ -21,6 +21,8 @@ public class SpeechRecognitionServiceTest {
 
     @Resource
     private SpeechRecognitionService speechRecognitionService;
+    @Resource
+    private FfmpegService ffmpegService;
 
     @Test
     public void testTts() throws InterruptedException {
@@ -31,5 +33,17 @@ public class SpeechRecognitionServiceTest {
 
         speechRecognitionService.synthesizeTextToSpeechSsml(lang, voiceName, text, destFilePath);
     }
+
+    @Test
+    public void testRecognize() {
+        String filePath = "C:\\dev\\files\\142535635\\voice_1759581216190.wav";
+        String destFilePath = "C:\\dev\\files\\142535635\\voice_1759581216190_mono.wav";
+
+        ffmpegService.convertToWavS16(filePath, destFilePath);
+
+        String translatedText = speechRecognitionService.translateSpeechAsync("zh-CN", "my-MM", destFilePath);
+        log.info("text: {}", translatedText);
+    }
+
 
 }
