@@ -30,7 +30,9 @@ public class AudioScheduleService {
     private String socketUrl;
 
     private AudioWebSocketClient audioWebSocketClient;
-    private final AudioProcessService audioProcessService;
+    private final RcgAudioProcessService rcgAudioProcessService;
+    private final RawAudioProcessService rawAudioProcessService;
+
     private final BroadcastSessionRepository broadcastSessionRepository;
 
     private final SttsConfig sttsConfig;
@@ -39,18 +41,21 @@ public class AudioScheduleService {
     private volatile boolean started = false;
 
     @PostConstruct
-    public void initWsClient() throws URISyntaxException {
-        AudioWebSocketClient client = new AudioWebSocketClient(new URI(socketUrl));
-        client.connect();
-        log.info("started ws client: {}", client);
+    public void initWsClient() {
+        try {
+            AudioWebSocketClient client = new AudioWebSocketClient(new URI(socketUrl));
+            client.setAudioProcessService(rawAudioProcessService);
+            client.connect();
 
-        this.audioWebSocketClient = client;
-        audioProcessService.startToHandleAudio(AudioTransDto.builder().sessionId(System.currentTimeMillis() + "").build());
+            log.info("started ws client: {}", client);
+
+            this.audioWebSocketClient = client;
+        } catch (URISyntaxException e) {
+            log.error("init ws client error", e);
+        }
     }
 
     public void startSession(AudioTransDto audioTransDto) {
-        audioProcessService.startToHandleAudio(audioTransDto);
-
         if(audioWebSocketClient == null) {
             log.warn("WS is not inited");
             throw new BizException(HttpResultCode.WS_INIT_ERROR);
@@ -63,10 +68,12 @@ public class AudioScheduleService {
                 audioWebSocketClient.connect();
             } catch (URISyntaxException e) {
                 log.error("parse uri error, ", e);
-
                 throw new BizException(HttpResultCode.WS_INIT_ERROR);
             }
         }
+
+        rcgAudioProcessService.startToHandleAudio(audioTransDto);
+        audioWebSocketClient.setAudioProcessService(rcgAudioProcessService);
 
         sttsConfig.setSttsStarted(true);
 
@@ -76,10 +83,20 @@ public class AudioScheduleService {
     public void stopSession() {
         sttsConfig.setSttsStarted(false);
         this.started = false;
+
+        audioWebSocketClient.setAudioProcessService(rawAudioProcessService);
+    }
+
+    public void onWsClosed() {
+        log.info("ws client closed, clear client info");
+        sttsConfig.setSttsStarted(false);
+        this.started = false;
+
+        this.audioWebSocketClient = null;
     }
 
     @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
-    public void checkSession() {
+    public void updateSessionTime() {
         if(!started) {
             return;
         }
@@ -90,5 +107,19 @@ public class AudioScheduleService {
         }
 
         broadcastSessionRepository.updateTime(session.getId(), new Date());
+    }
+
+    @Scheduled(initialDelay = 10, fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
+    public void checkClient() {
+        if(started) {
+            return;
+        }
+
+        if(audioWebSocketClient != null) {
+            return;
+        }
+
+        log.info("current no client, try to init again...");
+        initWsClient();
     }
 }

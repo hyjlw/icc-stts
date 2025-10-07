@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.icc.broadcast.config.AudioSttsConfig;
 import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.dto.AudioTransDto;
+import org.icc.broadcast.service.AudioProcessService;
 import org.icc.broadcast.ws.SocketMsg;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AudioProcessService {
+public class RcgAudioProcessService implements AudioProcessService {
     private final static int WEIGHT = -1;
 
     private final static BlockingQueue<SocketMsg> MSG_QUEUE = new LinkedBlockingQueue<>(1000000);
@@ -51,7 +52,7 @@ public class AudioProcessService {
 
     private AudioTransDto audioTrans;
 
-    private final AudioDetermineService audioDetermineService;
+    private final AudioTranslationService audioTranslationService;
 
     private final AudioSttsConfig audioSttsConfig;
 
@@ -62,7 +63,8 @@ public class AudioProcessService {
         new Thread(this::consume).start();
     }
 
-    public void put(SocketMsg socketMsg) {
+    @Override
+    public void handleSocketMsg(SocketMsg socketMsg) {
         try {
             MSG_QUEUE.put(socketMsg);
         } catch (InterruptedException e) {
@@ -139,29 +141,23 @@ public class AudioProcessService {
 
                     long passedMils = curMilis - startMilis;
                     long silentMils = curMilis - startSilentMilis;
-                    if (passedMils > 5000) {
+                    if (passedMils > 3000) {
                         if (silentMils > 500) {
-                            log.info("5s, 0.s silent, 停止录入");
+                            log.info("3s, 0.5s silent, 停止录入");
                             saveToFile = true;
                         }
                     }
-                    if (passedMils > 7000) {
+                    if (passedMils > 5000) {
                         if (silentMils > 200) {
-                            log.info("7s, 0.2s silent, 停止录入");
-                            saveToFile = true;
-                        }
-                    }
-                    if (passedMils > 8000) {
-                        if (silentMils > 100) {
-                            log.info("8s, 0.1s silent, 停止录入");
+                            log.info("5s, 0.2s silent, 停止录入");
                             saveToFile = true;
                         }
                     }
                 }
 
                 curMilis = System.currentTimeMillis();
-                if (curMilis - startMilis > 10000) {
-                    log.info("10s停止录入");
+                if (curMilis - startMilis > 7000) {
+                    log.info("7s停止录入");
                     saveToFile = true;
                 }
             }
@@ -191,7 +187,7 @@ public class AudioProcessService {
                 audioInfo.setRawDuration(duration);
                 audioInfo.setDestDuration(duration);
 
-                audioDetermineService.determineAudio(audioInfo);
+                audioTranslationService.translateAudio(audioInfo);
 
                 // reset timestamp
                 this.timestamp = 0;
@@ -223,11 +219,11 @@ public class AudioProcessService {
     }
 
     private AudioFormat getAudioFormat() {
-        float sampleRate = 44100;
+        float sampleRate = 24000;
         // 8000,11025,16000,22050,44100
         int sampleSizeInBits = 16;
         // 8,16
-        int channels = 2;
+        int channels = 1;
         // 1,2
         boolean signed = true;
         // true,false

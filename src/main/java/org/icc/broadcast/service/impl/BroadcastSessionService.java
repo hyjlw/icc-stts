@@ -24,7 +24,6 @@ public class BroadcastSessionService {
     private final BroadcastSessionRepository broadcastSessionRepository;
     private final AudioScheduleService audioScheduleService;
 
-
     public CommonResp switchBroadcastSession(BroadcastSession broadcastSession) {
         log.info("switch broadcast session: {}", broadcastSession);
         BroadcastSession session = broadcastSessionRepository.findById(broadcastSession.getId());

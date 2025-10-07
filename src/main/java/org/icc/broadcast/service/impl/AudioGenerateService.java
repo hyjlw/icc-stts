@@ -3,11 +3,14 @@ package org.icc.broadcast.service.impl;
 import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.icc.broadcast.dto.AudioByteInfo;
 import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.utils.ThreadPoolExecutorFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +21,6 @@ import java.util.concurrent.*;
 @Slf4j
 @RequiredArgsConstructor
 public class AudioGenerateService {
-
     private static final Executor SYNTH_POOL = ThreadPoolExecutorFactory.get(10000);
 
     @Value("${audio.trans.path}")
@@ -53,7 +55,6 @@ public class AudioGenerateService {
 
                 audioInfo.setSynthStartTime(System.currentTimeMillis());
 
-//                speechRecognitionService.synthesizeTextToSpeech(destLang, audioModel, audioInfo.getDestText(), destFilePath);
                 speechRecognitionService.synthesizeTextToSpeechSsml(destLang, audioModel, audioInfo.getDestText(), destFilePath);
 
                 audioInfo.setSynthEndTime(System.currentTimeMillis());
@@ -90,6 +91,8 @@ public class AudioGenerateService {
 
                 audioInfo.setGenerated(true);
                 audioInfo.setProcessed(true);
+            } catch (Exception e) {
+                log.error("generate final audio error", e);
             } finally {
                 audioPlayService.playAudio(audioInfo);
             }

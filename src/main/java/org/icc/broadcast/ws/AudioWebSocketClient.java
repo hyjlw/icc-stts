@@ -1,11 +1,15 @@
 package org.icc.broadcast.ws;
 
 import java.net.URI;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.icc.broadcast.service.impl.AudioProcessService;
+import org.icc.broadcast.service.AudioProcessService;
 import org.icc.broadcast.service.impl.AudioScheduleService;
 import org.icc.broadcast.utils.SpringContextHolder;
 import org.java_websocket.client.WebSocketClient;
@@ -14,6 +18,9 @@ import org.java_websocket.handshake.ServerHandshake;
 @Slf4j
 public class AudioWebSocketClient extends WebSocketClient{
 
+    private final static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
+
+    @Setter
     private AudioProcessService audioProcessService;
  
     public AudioWebSocketClient(URI serverUri) {
@@ -29,12 +36,15 @@ public class AudioWebSocketClient extends WebSocketClient{
     public void onClose(int arg0, String arg1, boolean arg2) {
         log.info("------ AudioWebSocketClient onClose ------");
 
-        AudioScheduleService audioScheduleService = SpringContextHolder.getBean(AudioScheduleService.class);
-        if(audioScheduleService == null) {
-            return;
-        }
+        executorService.schedule(() -> {
+            AudioScheduleService audioScheduleService = SpringContextHolder.getBean(AudioScheduleService.class);
+            if(audioScheduleService == null) {
+                return;
+            }
 
-        audioScheduleService.setStarted(false);
+            log.info("current ws client closed, clear the client info in schedule service");
+            audioScheduleService.onWsClosed();
+        }, 5, TimeUnit.SECONDS);
     }
 
     @Override
@@ -51,14 +61,10 @@ public class AudioWebSocketClient extends WebSocketClient{
         }
 
         SocketMsg socketMsg = JSONObject.parseObject(msg, SocketMsg.class);
-        getService().put(socketMsg);
+        getService().handleSocketMsg(socketMsg);
     }
 
     private AudioProcessService getService() {
-        if(audioProcessService == null) {
-            audioProcessService = SpringContextHolder.getBean(AudioProcessService.class);
-        }
-
         return audioProcessService;
     }
 

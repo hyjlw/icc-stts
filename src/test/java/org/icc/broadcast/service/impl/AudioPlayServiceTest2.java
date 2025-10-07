@@ -1,6 +1,7 @@
 package org.icc.broadcast.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.icc.broadcast.dto.AudioByteInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,10 +9,13 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Resource;
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -20,6 +24,10 @@ public class AudioPlayServiceTest2 {
 
     private  DataLine.Info info;
     private  SourceDataLine line;
+
+
+    @Resource
+    private AudioPlayService audioPlayService;
 
     @Before
     public void before() {
@@ -62,9 +70,11 @@ public class AudioPlayServiceTest2 {
     public void testPlay() throws InterruptedException {
 //        String audioPath = "D:\\dev_space\\GPTDeskWorkspace\\f5-tts\\tests\\api_out_laoxue3.wav";
 //        String audioPath = "C:\\dev\\trans\\68440ba26dea1bc04fdacaa6\\voice_1750518796525.wav";
-        String audioPath = "C:\\dev\\trans\\1759325221075.wav";
+        String audioPath = "C:\\dev\\trans\\5616515651135\\voice_1759838467455.wav";
 
         this.doPlayAudio2(audioPath);
+
+        TimeUnit.SECONDS.sleep(100);
     }
 
     private void doPlayAudio2(String audioPath) {
@@ -81,8 +91,12 @@ public class AudioPlayServiceTest2 {
             byte[] audioBuffer = new byte[1024]; // Define a suitable buffer size
             int bytesRead;
 
+            int seq = 0;
+            long ts = System.currentTimeMillis();
             while ((bytesRead = fis.read(audioBuffer)) != -1) {
-                line.write(audioBuffer, 0, bytesRead);
+                log.info("write seq: {}, data: {}", seq, audioBuffer);
+                byte []copiedBytes = Arrays.copyOf(audioBuffer, bytesRead);
+                audioPlayService.playAudioByte(AudioByteInfo.builder().seq(seq++).timestamp(ts).bytes(copiedBytes).build());
             }
 
         } catch (IOException e) {
