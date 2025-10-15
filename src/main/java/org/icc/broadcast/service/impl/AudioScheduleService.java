@@ -95,20 +95,6 @@ public class AudioScheduleService {
         this.audioWebSocketClient = null;
     }
 
-    @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
-    public void updateSessionTime() {
-        if(!started) {
-            return;
-        }
-
-        BroadcastSession session = broadcastSessionRepository.findOneBy(Criteria.where("started").is(true));
-        if(session == null) {
-            return;
-        }
-
-        broadcastSessionRepository.updateTime(session.getId(), new Date());
-    }
-
     @Scheduled(initialDelay = 10, fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
     public void checkClient() {
         if(started) {

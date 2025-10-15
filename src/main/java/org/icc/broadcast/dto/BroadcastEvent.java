@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BroadcastEvent {
 
-    private String broadcastSessionId;
+    private String machineId;
+    private String machineKey;
+    private String sessionId;
     private String event;
 
 }

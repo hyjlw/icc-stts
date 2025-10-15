@@ -14,22 +14,14 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "BroadcastSession")
-public class BroadcastSession {
+@Document(collection = "BroadcastMachineConfig")
+public class BroadcastMachineConfig {
     @Id
     private ObjectId id;
-    private ObjectId langId;
+    private ObjectId machineId;
+    private ObjectId sessionId;
 
-    private String sessionName;
-    private String srcLang;
-    private String destLang;
-    private String destModel;
-    private String gender;
-
-    /**
-     * AZURE, F5_TTS
-     */
-    private String provider;
+    private Boolean deleted;
 
     private Date updateTime = new Date();
     private Date createAt = new Date();
