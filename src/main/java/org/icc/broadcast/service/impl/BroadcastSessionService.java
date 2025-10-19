@@ -30,6 +30,8 @@ public class BroadcastSessionService {
     private final BroadcastMachineRepository broadcastMachineRepository;
     private final BroadcastMachineConfigRepository broadcastMachineConfigRepository;
     private final BroadcastSessionRepository broadcastSessionRepository;
+    private final MachineCommonService machineCommonService;
+
 
     private final AudioScheduleService audioScheduleService;
 
@@ -37,7 +39,13 @@ public class BroadcastSessionService {
         log.info("switch broadcast session: {}", broadcastEvent);
         BroadcastMachine machine = broadcastMachineRepository.findById(new ObjectId(broadcastEvent.getMachineId()));
         if(machine == null) {
-            throw new BizException("No machine found");
+            log.warn("No machine found by id: {}", broadcastEvent.getMachineId());
+            return;
+        }
+
+        if(!machine.getKey().equals(machineCommonService.getMachineKey())) {
+            log.warn("this event is not for this machine: {}", machine.getKey());
+            return;
         }
 
         if(machine.getStarted()) {
