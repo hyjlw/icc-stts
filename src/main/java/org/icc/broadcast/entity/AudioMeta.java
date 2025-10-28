@@ -9,17 +9,19 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AudioInfo {
+public class AudioMeta {
 
     private String lang;
     private String audioModel;
-    private String generator;
+    private String provider;
     /**
      * millisecond unit
      */
-    private Integer duration;
+    private Long duration;
 
     private String filePath;
+    private String finalFilePath;
 
     private String text;
+
 }

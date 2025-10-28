@@ -46,6 +46,8 @@ public class RcgAudioProcessService implements AudioProcessService {
     boolean saveToFile = false;
     private boolean finished = false;
     private String curAudioPath;
+    private String broadcastId;
+    private String provider;
     private long timestamp;
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -87,7 +89,9 @@ public class RcgAudioProcessService implements AudioProcessService {
     public void startToHandleAudio(AudioTransDto audioTrans) {
         log.info("start to handle audio req: {}", audioTrans);
         this.audioTrans = audioTrans;
-        curAudioPath = this.audioPath + "/" + audioTrans.getSessionId();
+        curAudioPath = this.audioPath + "/" + audioTrans.getBroadcastId();
+        this.broadcastId = audioTrans.getBroadcastId();
+        this.provider = audioTrans.getProvider();
 
         if(!FileUtil.exist(curAudioPath)) {
             try {
@@ -182,6 +186,8 @@ public class RcgAudioProcessService implements AudioProcessService {
                 audioInfo.setGenerated(false);
                 audioInfo.setProcessed(false);
                 audioInfo.setTimestamp(timestamp);
+                audioInfo.setBroadcastId(this.broadcastId);
+                audioInfo.setProvider(this.provider);
 
                 long duration = curMilis - startMilis;
                 audioInfo.setRawDuration(duration);

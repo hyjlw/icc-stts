@@ -18,6 +18,8 @@ import org.icc.broadcast.repo.BroadcastSessionRepository;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 /**
  * @author LL
  *
@@ -65,10 +67,12 @@ public class BroadcastSessionService {
             }
 
             audioScheduleService.startSession(AudioTransDto.builder()
+                            .broadcastId(UUID.randomUUID().toString())
                     .sessionId(broadcastSession.getId().toHexString())
                     .srcLang(broadcastSession.getSrcLang())
                     .destLang(broadcastSession.getDestLang())
                     .destModel(broadcastSession.getDestModel())
+                            .provider("AZURE")
                     .build());
         } else {
             audioScheduleService.stopSession();

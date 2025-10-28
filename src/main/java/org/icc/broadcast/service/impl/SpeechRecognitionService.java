@@ -430,7 +430,7 @@ public class SpeechRecognitionService {
 
         if(speechConfig == null) {
             speechConfig = SpeechConfig.fromSubscription(speechKey, speechRegion);
-            speechConfig.setSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Riff24Khz16BitMonoPcm);
+            speechConfig.setSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Riff44100Hz16BitMonoPcm);
 
             CONFIG_CACHE.put(key, speechConfig);
         }

@@ -33,8 +33,6 @@ public class AudioScheduleService {
     private final RcgAudioProcessService rcgAudioProcessService;
     private final RawAudioProcessService rawAudioProcessService;
 
-    private final BroadcastSessionRepository broadcastSessionRepository;
-
     private final SttsConfig sttsConfig;
 
     @Setter

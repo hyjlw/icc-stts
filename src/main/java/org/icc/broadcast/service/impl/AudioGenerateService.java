@@ -3,14 +3,11 @@ package org.icc.broadcast.service.impl;
 import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.icc.broadcast.dto.AudioByteInfo;
 import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.utils.ThreadPoolExecutorFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,6 +50,8 @@ public class AudioGenerateService {
                     }
                 }
 
+                log.info("synthesize to audio file: {}", destFilePath);
+
                 audioInfo.setSynthStartTime(System.currentTimeMillis());
 
                 speechRecognitionService.synthesizeTextToSpeechSsml(destLang, audioModel, audioInfo.getDestText(), destFilePath);
@@ -65,6 +64,7 @@ public class AudioGenerateService {
                     return;
                 }
 
+                audioInfo.setRawDestFilePath(destFilePath);
                 audioInfo.setDestFilePath(destFilePath);
 
                 // set dest duration first;

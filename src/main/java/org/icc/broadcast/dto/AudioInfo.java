@@ -11,10 +11,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AudioInfo {
 
+    private String broadcastId;
     private String sessionId;
     private String srcLang;
     private String destLang;
     private String destModel;
+    private String provider;
 
     private String rawFilePath;
     private String rawText;
@@ -33,6 +35,7 @@ public class AudioInfo {
      */
     private boolean generated;
 
+    private String rawDestFilePath;
     private String destFilePath;
     private String destText;
 

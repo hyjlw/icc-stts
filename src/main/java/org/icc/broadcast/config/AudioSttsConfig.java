@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @RefreshScope
 public class AudioSttsConfig {
 
-    private Double silentWeight;
-    private Boolean showVolumeLog;
+    private Double silentWeight = 20.0;
+    private Boolean showVolumeLog = false;
 
 }
