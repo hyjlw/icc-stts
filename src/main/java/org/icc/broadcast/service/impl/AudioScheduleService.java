@@ -1,5 +1,6 @@
 package org.icc.broadcast.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -106,4 +107,48 @@ public class AudioScheduleService {
         log.info("current no client, try to init again...");
         initWsClient();
     }
+
+    private static final int SUNDAY_VAL = 1;
+    private static final int [][] VALID_SEGMENTS = new int[][]{{10, 12}, {16, 18}};
+
+    @Scheduled(initialDelay = 1, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
+    public void checkValidTimeRange() {
+        if(!started) {
+            return;
+        }
+
+        Date now = new Date();
+        boolean valid = true;
+
+        int day = DateUtil.dayOfWeek(now);
+        if (day != SUNDAY_VAL) {
+            valid = false;
+        }
+
+        if(valid) {
+            int hour = DateUtil.hour(now, true);
+            boolean active = false;
+            for(int []arr : VALID_SEGMENTS) {
+                if(hour >= arr[0] && hour < arr[1]) {
+                    active = true;
+                }
+
+                if (active) {
+                    break;
+                }
+            }
+
+            if(!active) {
+                valid = false;
+            }
+        }
+
+        if(!valid) {
+            log.warn("current time: {} is not valid period", now);
+
+            this.stopSession();
+        }
+    }
+
+
 }
