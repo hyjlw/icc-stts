@@ -75,8 +75,8 @@ public class AudioGenerateService {
                 if (atempo > 1.2) {
                     log.info("dest audio: {} length: {} is too long, will shorten it as the raw length: {}", destFilePath, destDuration, audioInfo.getRawDuration());
 
-                    if (atempo > 2) {
-                        atempo = 2.0;
+                    if (atempo > 1.25) {
+                        atempo = 1.25;
                     }
                     String destStretchedFilePath = this.transPath + "/" + sessionId + "/" + "stretched_" + fileName;
                     ffmpegService.stretchAudio(destFilePath, destStretchedFilePath, atempo);
