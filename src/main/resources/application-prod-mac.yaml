@@ -71,7 +71,7 @@ mybatis-plus:
 
 file:
   download:
-    dir: D:/ICC-APP/ICC-STTS/files
+    dir: /Users/thomas/apps/icc-stts/files
 
 ms:
   speech:
@@ -91,6 +91,6 @@ audio:
   socket:
     url: ws://192.168.1.179:8186/icc-audio/ws/audio/icc-stts
   save:
-    path: D:/ICC-APP/ICC-STTS/files
+    path: /Users/thomas/apps/icc-stts/files
   trans:
-    path: D:/ICC-APP/ICC-STTS/trans
+    path: /Users/thomas/apps/icc-stts/trans
