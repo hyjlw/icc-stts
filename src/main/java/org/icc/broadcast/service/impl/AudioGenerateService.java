@@ -71,23 +71,23 @@ public class AudioGenerateService {
                 long destDuration = ffmpegService.getDuration(destFilePath);
                 audioInfo.setDestDuration(destDuration);
 
-                double atempo = 1.0 * destDuration / audioInfo.getRawDuration();
-                if (atempo > 1.2) {
-                    log.info("dest audio: {} length: {} is too long, will shorten it as the raw length: {}", destFilePath, destDuration, audioInfo.getRawDuration());
-
-                    if (atempo > 1.25) {
-                        atempo = 1.25;
-                    }
-                    String destStretchedFilePath = this.transPath + "/" + sessionId + "/" + "stretched_" + fileName;
-                    ffmpegService.stretchAudio(destFilePath, destStretchedFilePath, atempo);
-
-                    if (FileUtil.exist(destStretchedFilePath)) {
-                        audioInfo.setDestFilePath(destStretchedFilePath);
-
-                        long destDurationForGenedFile = ffmpegService.getDuration(destStretchedFilePath);
-                        audioInfo.setDestDuration(destDurationForGenedFile);
-                    }
-                }
+//                double atempo = 1.0 * destDuration / audioInfo.getRawDuration();
+//                if (atempo > 1.2) {
+//                    log.info("dest audio: {} length: {} is too long, will shorten it as the raw length: {}", destFilePath, destDuration, audioInfo.getRawDuration());
+//
+//                    if (atempo > 1.25) {
+//                        atempo = 1.25;
+//                    }
+//                    String destStretchedFilePath = this.transPath + "/" + sessionId + "/" + "stretched_" + fileName;
+//                    ffmpegService.stretchAudio(destFilePath, destStretchedFilePath, atempo);
+//
+//                    if (FileUtil.exist(destStretchedFilePath)) {
+//                        audioInfo.setDestFilePath(destStretchedFilePath);
+//
+//                        long destDurationForGenedFile = ffmpegService.getDuration(destStretchedFilePath);
+//                        audioInfo.setDestDuration(destDurationForGenedFile);
+//                    }
+//                }
 
                 audioInfo.setGenerated(true);
                 audioInfo.setProcessed(true);
