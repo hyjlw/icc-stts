@@ -22,7 +22,7 @@ public class BroadcastMachineService {
 
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
     public void registerSttsMachine() {
-        log.info("register stts machine...");
+//        log.info("register stts machine...");
 
         String port = machineCommonService.getHostPort();
         String hostname = machineCommonService.getHostname();

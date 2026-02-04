@@ -335,4 +335,53 @@ public class FfmpegService {
         return false;
     }
 
+    public boolean convertToStereo(String audioPath, String destPath) {
+        try {
+            Runtime runtime = Runtime.getRuntime();
+            String[] command = {
+                    ffmpegPath, "-i", audioPath, "-ac", "2", destPath, "-y"
+            };
+            //, "-shortest", "-af", "apad"
+            Process process = runtime.exec(command);
+            log.info("[convertToStereo]Process {}", process);
+            int exitValue = process.waitFor();
+            log.info("[convertToStereo]Started audio convertToStereo with exit code: {}", exitValue);
+            BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            log.info("[convertToStereo]stdInput {}", stdInput.readLine());
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            log.info("[convertToStereo]stdError {}", stdError);
+
+            // read the output from the command
+            StringBuilder normalOutputBuffer = new StringBuilder();
+            String line;
+            while ((line = stdInput.readLine()) != null) {
+                log.info("[convertToStereo]This is ffmpeg try while block");
+                normalOutputBuffer.append(line);
+                if (!line.contains("Done:")) {
+                    normalOutputBuffer.append("\n");
+                }
+
+            }
+            if (!normalOutputBuffer.toString().isEmpty()) {
+                log.debug("[convertToStereo]convertToStereo generation ended successfully. \n {}", normalOutputBuffer);
+            }
+
+            // read any errors from the command
+            StringBuilder errorOutputBuffer = new StringBuilder();
+            while ((line = stdError.readLine()) != null) {
+                errorOutputBuffer.append(line);
+                errorOutputBuffer.append("\n");
+            }
+            if (!errorOutputBuffer.toString().isEmpty()) {
+                log.debug("[convertToStereo]convertToStereo generation ended with failure. \n {}", errorOutputBuffer);
+            }
+
+            return true;
+        } catch (Exception e) {
+            log.error("[convertToStereo]convertToStereo error", e);
+        }
+
+        return false;
+    }
+
 }

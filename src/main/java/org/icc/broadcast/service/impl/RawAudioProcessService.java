@@ -16,12 +16,12 @@ public class RawAudioProcessService implements AudioProcessService {
 
     @Override
     public void handleSocketMsg(SocketMsg socketMsg) {
-        AudioByteInfo audioByteInfo = AudioByteInfo.builder()
-                .timestamp(socketMsg.getTimestamp())
-                .seq(0)
-                .bytes(socketMsg.getData())
-                .build();
-
-        audioPlayService.playAudioByte(audioByteInfo);
+//        AudioByteInfo audioByteInfo = AudioByteInfo.builder()
+//                .timestamp(socketMsg.getTimestamp())
+//                .seq(0)
+//                .bytes(socketMsg.getData())
+//                .build();
+//
+//        audioPlayService.playAudioByte(audioByteInfo);
     }
 }

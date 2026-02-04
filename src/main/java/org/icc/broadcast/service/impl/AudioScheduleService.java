@@ -34,6 +34,8 @@ public class AudioScheduleService {
     private final RcgAudioProcessService rcgAudioProcessService;
     private final RawAudioProcessService rawAudioProcessService;
 
+    private final AudioPlayService audioPlayService;
+
     private final SttsConfig sttsConfig;
 
     @Setter
@@ -74,6 +76,10 @@ public class AudioScheduleService {
         rcgAudioProcessService.startToHandleAudio(audioTransDto);
         audioWebSocketClient.setAudioProcessService(rcgAudioProcessService);
 
+        // reset play params
+        audioPlayService.setAudioFileCount(0);
+        audioPlayService.setValidToPlay(false);
+
         sttsConfig.setSttsStarted(true);
 
         this.started = true;
@@ -111,7 +117,7 @@ public class AudioScheduleService {
     private static final int SUNDAY_VAL = 1;
     private static final int [][] VALID_SEGMENTS = new int[][]{{10, 12}, {16, 18}};
 
-    @Scheduled(initialDelay = 1, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
+//    @Scheduled(initialDelay = 1, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
     public void checkValidTimeRange() {
         if(!started) {
             return;

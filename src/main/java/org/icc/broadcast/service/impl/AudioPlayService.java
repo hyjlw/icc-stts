@@ -2,6 +2,7 @@ package org.icc.broadcast.service.impl;
 
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.icc.broadcast.dto.AudioByteInfo;
@@ -10,6 +11,7 @@ import org.icc.broadcast.entity.AudioMeta;
 import org.icc.broadcast.entity.BroadcastAudio;
 import org.icc.broadcast.entity.ProcessTime;
 import org.icc.broadcast.repo.BroadcastAudioRepository;
+import org.icc.broadcast.utils.SpringContextHolder;
 import org.icc.broadcast.utils.ThreadPoolExecutorFactory;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -44,14 +47,18 @@ public class AudioPlayService {
 
     private final BroadcastAudioRepository broadcastAudioRepository;
 
-    private final static int BUFFER_SIZE = 1024;
-    private final static int SAMPLE_RATE = 44100;
+    private final static int BUFFER_SIZE = 1280;
+    private final static int SAMPLE_RATE = 16000;
     private final static int BITS_PER_SAMPLE = 16;
-    private final static int CHANNELS = 1;
+    private final static int CHANNELS = 2;
 
     private  DataLine.Info info;
     private  SourceDataLine line;
 
+    @Setter
+    private int audioFileCount = 0;
+    @Setter
+    private volatile boolean validToPlay = false;
 
     public void playAudioByte(AudioByteInfo audioByteInfo) {
         concurrentLinkedQueue.put(audioByteInfo);
@@ -72,11 +79,20 @@ public class AudioPlayService {
             return;
         }
 
+        int seq = 0;
+
+        // set 20ms zero data
+        byte[] zeroAudioBytes = new byte[BUFFER_SIZE];
+        AudioByteInfo zeroAudioByteInfo = AudioByteInfo.builder()
+                .timestamp(audioInfo.getTimestamp())
+                .seq(seq++)
+                .bytes(zeroAudioBytes)
+                .build();
+        concurrentLinkedQueue.put(zeroAudioByteInfo);
+
         try (FileInputStream fis = new FileInputStream(destAudioFile)) {
             byte[] audioBuffer = new byte[BUFFER_SIZE]; // Define a suitable buffer size
             int bytesRead;
-
-            int seq = 0;
             while ((bytesRead = fis.read(audioBuffer)) != -1) {
                 byte []copiedBytes = Arrays.copyOf(audioBuffer, bytesRead);
                 AudioByteInfo audioByteInfo = AudioByteInfo.builder()
@@ -88,56 +104,77 @@ public class AudioPlayService {
                 concurrentLinkedQueue.put(audioByteInfo);
             }
 
-            PERSIST_POOL.execute(() -> {
-                if(!audioInfo.isProcessed() || !audioInfo.isGenerated()) {
-                    return;
-                }
+            audioFileCount++;
 
-                BroadcastAudio broadcastAudio = BroadcastAudio.builder()
-                        .broadcastId(audioInfo.getBroadcastId())
-                        .sessionId(audioInfo.getSessionId())
-                        .srcLang(audioInfo.getSrcLang())
-                        .rawFilePath(audioInfo.getRawFilePath())
-                        .rawText(audioInfo.getRawText())
-                        .rawDuration(audioInfo.getRawDuration())
-                        .createAt(new Date())
-                        .updateTime(new Date())
-                        .build();
-
-                List<AudioMeta> audioMetas = Lists.newArrayList(AudioMeta.builder()
-                                .audioModel(audioInfo.getDestModel())
-                                .lang(audioInfo.getDestLang())
-                                .text(audioInfo.getDestText())
-                                .duration(audioInfo.getDestDuration())
-                                .filePath(audioInfo.getRawDestFilePath())
-                                .finalFilePath(audioInfo.getDestFilePath())
-                                .provider(audioInfo.getProvider())
-                        .build());
-
-                broadcastAudio.setAudioMetas(audioMetas);
-
-                List<ProcessTime> times = Lists.newArrayList(ProcessTime.builder()
-                                .type("REC_AND_TRAN")
-                                .startTime(new Date(audioInfo.getTextStartTime()))
-                                .endTime(new Date(audioInfo.getTextEndTime()))
-                                .duration(audioInfo.getTextEndTime() - audioInfo.getTextStartTime())
-                        .build(),
-                        ProcessTime.builder()
-                                .type("SYNTHESISE")
-                                .startTime(new Date(audioInfo.getSynthStartTime()))
-                                .endTime(new Date(audioInfo.getSynthEndTime()))
-                                .duration(audioInfo.getSynthEndTime() - audioInfo.getSynthStartTime())
-                                .build()
-                        );
-
-                broadcastAudio.setTimes(times);
-
-                broadcastAudioRepository.add(broadcastAudio);
-            });
-
+            if(audioFileCount > 5 && !validToPlay) {
+                validToPlay = true;
+            }
         } catch (IOException e) {
             log.error("read audio: {} bytes error", audioInfo.getDestFilePath(), e);
         }
+
+        this.saveAudioInfo(audioInfo);
+    }
+
+    private void saveAudioInfo(AudioInfo audioInfo) {
+        log.info("start to save audio: {}", audioInfo);
+
+        // save the audio info
+        PERSIST_POOL.execute(() -> {
+            if(!audioInfo.isProcessed() || !audioInfo.isGenerated()) {
+                return;
+            }
+
+            String rawText = "";
+            SpeechRecognitionService speechRecognitionService = SpringContextHolder.getBean(SpeechRecognitionService.class);
+            if(speechRecognitionService != null) {
+                String recRawText = speechRecognitionService.recognizeFromSpeech(audioInfo.getSrcLang(), audioInfo.getRawFilePath(), false);
+                if(!StringUtils.isBlank(recRawText)) {
+                    rawText = recRawText;
+                }
+            }
+
+            BroadcastAudio broadcastAudio = BroadcastAudio.builder()
+                    .broadcastId(audioInfo.getBroadcastId())
+                    .sessionId(audioInfo.getSessionId())
+                    .srcLang(audioInfo.getSrcLang())
+                    .rawFilePath(audioInfo.getRawFilePath())
+                    .rawText(rawText)
+                    .rawDuration(audioInfo.getRawDuration())
+                    .createAt(new Date())
+                    .updateTime(new Date())
+                    .build();
+
+            List<AudioMeta> audioMetas = Lists.newArrayList(AudioMeta.builder()
+                    .audioModel(audioInfo.getDestModel())
+                    .lang(audioInfo.getDestLang())
+                    .text(audioInfo.getDestText())
+                    .duration(audioInfo.getDestDuration())
+                    .filePath(audioInfo.getRawDestFilePath())
+                    .finalFilePath(audioInfo.getDestFilePath())
+                    .provider(audioInfo.getProvider())
+                    .build());
+
+            broadcastAudio.setAudioMetas(audioMetas);
+
+            List<ProcessTime> times = Lists.newArrayList(ProcessTime.builder()
+                            .type("REC_AND_TRAN")
+                            .startTime(new Date(audioInfo.getTextStartTime()))
+                            .endTime(new Date(audioInfo.getTextEndTime()))
+                            .duration(audioInfo.getTextEndTime() - audioInfo.getTextStartTime())
+                            .build(),
+                    ProcessTime.builder()
+                            .type("SYNTHESISE")
+                            .startTime(new Date(audioInfo.getSynthStartTime()))
+                            .endTime(new Date(audioInfo.getSynthEndTime()))
+                            .duration(audioInfo.getSynthEndTime() - audioInfo.getSynthStartTime())
+                            .build()
+            );
+
+            broadcastAudio.setTimes(times);
+
+            broadcastAudioRepository.add(broadcastAudio);
+        });
     }
 
     @PostConstruct
@@ -159,6 +196,15 @@ public class AudioPlayService {
 
             new Thread(() -> {
                 for (;;) {
+                    if(!validToPlay) {
+                        try {
+                            TimeUnit.MILLISECONDS.sleep(100);
+                        } catch (InterruptedException e) {
+                            log.error("sleep error");
+                        }
+
+                        continue;
+                    }
                     try {
                         AudioByteInfo audioInfo = concurrentLinkedQueue.take();
 
@@ -181,6 +227,22 @@ public class AudioPlayService {
 
     private void doPlayAudio2(AudioByteInfo audioInfo) {
         byte[] bytes = audioInfo.getBytes();
+
+        // fix illegal request to write non-integral number of frames (874 bytes, frameSize = 4 bytes)
+
+        int rest = bytes.length % 4;
+        if(rest > 0) {
+            int len = bytes.length + rest;
+            byte []newBytes = new byte[len];
+            System.arraycopy(bytes, 0, newBytes, 0, bytes.length);
+
+            for(int i = 0; i < rest; i++) {
+                newBytes[len - i - 1] = 0;
+            }
+
+            bytes = newBytes;
+        }
+
         line.write(bytes, 0, bytes.length);
     }
 

@@ -145,23 +145,25 @@ public class RcgAudioProcessService implements AudioProcessService {
 
                     long passedMils = curMilis - startMilis;
                     long silentMils = curMilis - startSilentMilis;
-                    if (passedMils > 3000) {
+
+                    // 5000
+                    if (passedMils > audioSttsConfig.getStopMsLevel1()) {
                         if (silentMils > 500) {
-                            log.info("3s, 0.5s silent, 停止录入");
+                            log.info("{}s, 0.5s silent, 停止录入", audioSttsConfig.getStopMsLevel1());
                             saveToFile = true;
                         }
                     }
-                    if (passedMils > 5000) {
+                    if (passedMils > audioSttsConfig.getStopMsLevel2()) {
                         if (silentMils > 200) {
-                            log.info("5s, 0.2s silent, 停止录入");
+                            log.info("{}s, 0.2s silent, 停止录入", audioSttsConfig.getStopMsLevel2());
                             saveToFile = true;
                         }
                     }
                 }
 
                 curMilis = System.currentTimeMillis();
-                if (curMilis - startMilis > 7000) {
-                    log.info("7s停止录入");
+                if (curMilis - startMilis > audioSttsConfig.getStopMsLevel3()) {
+                    log.info("{}s停止录入", audioSttsConfig.getStopMsLevel3());
                     saveToFile = true;
                 }
             }
@@ -225,11 +227,11 @@ public class RcgAudioProcessService implements AudioProcessService {
     }
 
     private AudioFormat getAudioFormat() {
-        float sampleRate = 24000;
+        float sampleRate = 16000;
         // 8000,11025,16000,22050,44100
         int sampleSizeInBits = 16;
         // 8,16
-        int channels = 1;
+        int channels = 2;
         // 1,2
         boolean signed = true;
         // true,false

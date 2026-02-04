@@ -71,6 +71,13 @@ public class AudioGenerateService {
                 long destDuration = ffmpegService.getDuration(destFilePath);
                 audioInfo.setDestDuration(destDuration);
 
+                String destStereoFilePath = this.transPath + "/" + sessionId + "/" + "stereo_" + fileName;
+                ffmpegService.convertToStereo(destFilePath, destStereoFilePath);
+
+                if (FileUtil.exist(destStereoFilePath)) {
+                    audioInfo.setDestFilePath(destStereoFilePath);
+                }
+
 //                double atempo = 1.0 * destDuration / audioInfo.getRawDuration();
 //                if (atempo > 1.2) {
 //                    log.info("dest audio: {} length: {} is too long, will shorten it as the raw length: {}", destFilePath, destDuration, audioInfo.getRawDuration());
