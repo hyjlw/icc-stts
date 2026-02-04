@@ -78,7 +78,6 @@ file:
   download:
     dir: C:/dev/files
 
-
 ms:
   speech:
     key: 282JjsUrd0LRmyxiDh7qlbd8EsdEpyvkBN6cLoEb74dghZ9zqQzHJQQJ99BLACqBBLyXJ3w3AAAYACOGuy7D
@@ -100,3 +99,5 @@ audio:
     path: C:/dev/files
   trans:
     path: C:/dev/trans
+  recognize:
+    enabled: true

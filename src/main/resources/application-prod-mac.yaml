@@ -94,3 +94,5 @@ audio:
     path: /Users/thomas/apps/icc-stts/files
   trans:
     path: /Users/thomas/apps/icc-stts/trans
+  recognize:
+    enabled: true

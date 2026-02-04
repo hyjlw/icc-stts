@@ -13,6 +13,7 @@ import org.icc.broadcast.entity.ProcessTime;
 import org.icc.broadcast.repo.BroadcastAudioRepository;
 import org.icc.broadcast.utils.SpringContextHolder;
 import org.icc.broadcast.utils.ThreadPoolExecutorFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -60,6 +61,9 @@ public class AudioPlayService {
     @Setter
     private volatile boolean validToPlay = false;
 
+    @Value("${audio.recognize.enabled:false}")
+    private boolean recognizeEnabled;
+
     public void playAudioByte(AudioByteInfo audioByteInfo) {
         concurrentLinkedQueue.put(audioByteInfo);
     }
@@ -79,22 +83,22 @@ public class AudioPlayService {
             return;
         }
 
-        int seq = 0;
-
-        // set 20ms zero data
-        byte[] zeroAudioBytes = new byte[BUFFER_SIZE];
-        AudioByteInfo zeroAudioByteInfo = AudioByteInfo.builder()
-                .timestamp(audioInfo.getTimestamp())
-                .seq(seq++)
-                .bytes(zeroAudioBytes)
-                .build();
-        concurrentLinkedQueue.put(zeroAudioByteInfo);
 
         try (FileInputStream fis = new FileInputStream(destAudioFile)) {
             byte[] audioBuffer = new byte[BUFFER_SIZE]; // Define a suitable buffer size
             int bytesRead;
+            int seq = 0;
             while ((bytesRead = fis.read(audioBuffer)) != -1) {
                 byte []copiedBytes = Arrays.copyOf(audioBuffer, bytesRead);
+
+                if(seq < 2) {
+                    for(int i = 0; i < copiedBytes.length; i++) {
+                        if(copiedBytes[i] > 1) {
+                            copiedBytes[i] = 1;
+                        }
+                    }
+                }
+
                 AudioByteInfo audioByteInfo = AudioByteInfo.builder()
                         .timestamp(audioInfo.getTimestamp())
                         .seq(seq++)
@@ -126,11 +130,13 @@ public class AudioPlayService {
             }
 
             String rawText = "";
-            SpeechRecognitionService speechRecognitionService = SpringContextHolder.getBean(SpeechRecognitionService.class);
-            if(speechRecognitionService != null) {
-                String recRawText = speechRecognitionService.recognizeFromSpeech(audioInfo.getSrcLang(), audioInfo.getRawFilePath(), false);
-                if(!StringUtils.isBlank(recRawText)) {
-                    rawText = recRawText;
+            if(recognizeEnabled) {
+                SpeechRecognitionService speechRecognitionService = SpringContextHolder.getBean(SpeechRecognitionService.class);
+                if (speechRecognitionService != null) {
+                    String recRawText = speechRecognitionService.recognizeFromSpeech(audioInfo.getSrcLang(), audioInfo.getRawFilePath(), false);
+                    if (!StringUtils.isBlank(recRawText)) {
+                        rawText = recRawText;
+                    }
                 }
             }
 

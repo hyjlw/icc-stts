@@ -95,3 +95,5 @@ audio:
     path: D:/ICC-APP/ICC-STTS/files
   trans:
     path: D:/ICC-APP/ICC-STTS/trans
+  recognize:
+    enabled: false
