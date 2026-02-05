@@ -19,4 +19,5 @@ public class ProcessTime {
 
     private long duration;
 
+    private String errMsg;
 }

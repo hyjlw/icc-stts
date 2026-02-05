@@ -1,18 +1,11 @@
 package org.icc.broadcast.service.impl;
 
-import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.icc.broadcast.dto.AudioByteInfo;
 import org.icc.broadcast.dto.AudioInfo;
-import org.icc.broadcast.entity.AudioMeta;
-import org.icc.broadcast.entity.BroadcastAudio;
-import org.icc.broadcast.entity.ProcessTime;
-import org.icc.broadcast.repo.BroadcastAudioRepository;
-import org.icc.broadcast.utils.SpringContextHolder;
-import org.icc.broadcast.utils.ThreadPoolExecutorFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +15,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -44,9 +34,6 @@ public class AudioPlayService {
             }
         );
 
-    private static final Executor PERSIST_POOL = ThreadPoolExecutorFactory.get(10000);
-
-    private final BroadcastAudioRepository broadcastAudioRepository;
 
     private final static int BUFFER_SIZE = 1280;
     private final static int SAMPLE_RATE = 16000;
@@ -71,9 +58,9 @@ public class AudioPlayService {
     public void playAudio(AudioInfo audioInfo) {
         log.info("start to play audio: {}", audioInfo);
 
-        String filePath = audioInfo.getDestFilePath();
-        if(!audioInfo.isGenerated() || StringUtils.isBlank(filePath)) {
-            filePath = audioInfo.getRawFilePath();
+        String filePath = audioInfo.getFinalFilePath();
+        if(StringUtils.isBlank(filePath)) {
+            filePath = audioInfo.getFilePath();
         }
 
         File destAudioFile = new File(filePath);
@@ -82,7 +69,6 @@ public class AudioPlayService {
             log.warn("audio file: {} does not exist", filePath);
             return;
         }
-
 
         try (FileInputStream fis = new FileInputStream(destAudioFile)) {
             byte[] audioBuffer = new byte[BUFFER_SIZE]; // Define a suitable buffer size
@@ -114,74 +100,10 @@ public class AudioPlayService {
                 validToPlay = true;
             }
         } catch (IOException e) {
-            log.error("read audio: {} bytes error", audioInfo.getDestFilePath(), e);
+            log.error("read audio: {} bytes error", filePath, e);
         }
-
-        this.saveAudioInfo(audioInfo);
     }
 
-    private void saveAudioInfo(AudioInfo audioInfo) {
-        log.info("start to save audio: {}", audioInfo);
-
-        // save the audio info
-        PERSIST_POOL.execute(() -> {
-            if(!audioInfo.isProcessed() || !audioInfo.isGenerated()) {
-                return;
-            }
-
-            String rawText = "";
-            if(recognizeEnabled) {
-                SpeechRecognitionService speechRecognitionService = SpringContextHolder.getBean(SpeechRecognitionService.class);
-                if (speechRecognitionService != null) {
-                    String recRawText = speechRecognitionService.recognizeFromSpeech(audioInfo.getSrcLang(), audioInfo.getRawFilePath(), false);
-                    if (!StringUtils.isBlank(recRawText)) {
-                        rawText = recRawText;
-                    }
-                }
-            }
-
-            BroadcastAudio broadcastAudio = BroadcastAudio.builder()
-                    .broadcastId(audioInfo.getBroadcastId())
-                    .sessionId(audioInfo.getSessionId())
-                    .srcLang(audioInfo.getSrcLang())
-                    .rawFilePath(audioInfo.getRawFilePath())
-                    .rawText(rawText)
-                    .rawDuration(audioInfo.getRawDuration())
-                    .createAt(new Date())
-                    .updateTime(new Date())
-                    .build();
-
-            List<AudioMeta> audioMetas = Lists.newArrayList(AudioMeta.builder()
-                    .audioModel(audioInfo.getDestModel())
-                    .lang(audioInfo.getDestLang())
-                    .text(audioInfo.getDestText())
-                    .duration(audioInfo.getDestDuration())
-                    .filePath(audioInfo.getRawDestFilePath())
-                    .finalFilePath(audioInfo.getDestFilePath())
-                    .provider(audioInfo.getProvider())
-                    .build());
-
-            broadcastAudio.setAudioMetas(audioMetas);
-
-            List<ProcessTime> times = Lists.newArrayList(ProcessTime.builder()
-                            .type("REC_AND_TRAN")
-                            .startTime(new Date(audioInfo.getTextStartTime()))
-                            .endTime(new Date(audioInfo.getTextEndTime()))
-                            .duration(audioInfo.getTextEndTime() - audioInfo.getTextStartTime())
-                            .build(),
-                    ProcessTime.builder()
-                            .type("SYNTHESISE")
-                            .startTime(new Date(audioInfo.getSynthStartTime()))
-                            .endTime(new Date(audioInfo.getSynthEndTime()))
-                            .duration(audioInfo.getSynthEndTime() - audioInfo.getSynthStartTime())
-                            .build()
-            );
-
-            broadcastAudio.setTimes(times);
-
-            broadcastAudioRepository.add(broadcastAudio);
-        });
-    }
 
     @PostConstruct
     public void doPlayAudio() {

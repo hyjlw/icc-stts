@@ -11,7 +11,6 @@ import org.icc.broadcast.dto.BroadcastEvent;
 import org.icc.broadcast.entity.BroadcastMachine;
 import org.icc.broadcast.entity.BroadcastMachineConfig;
 import org.icc.broadcast.entity.BroadcastSession;
-import org.icc.broadcast.exception.BizException;
 import org.icc.broadcast.repo.BroadcastMachineConfigRepository;
 import org.icc.broadcast.repo.BroadcastMachineRepository;
 import org.icc.broadcast.repo.BroadcastSessionRepository;

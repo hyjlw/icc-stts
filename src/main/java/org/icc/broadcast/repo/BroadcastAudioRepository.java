@@ -3,13 +3,18 @@
  */
 package org.icc.broadcast.repo;
 
+import cn.hutool.core.collection.CollectionUtil;
 import org.bson.types.ObjectId;
+import org.icc.broadcast.entity.AudioMeta;
 import org.icc.broadcast.entity.BroadcastAudio;
+import org.icc.broadcast.entity.ProcessTime;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,5 +38,31 @@ public class BroadcastAudioRepository extends AbstractRepository<BroadcastAudio>
 
     public List<BroadcastAudio> findBy(Criteria c, int start, int limit) {
         return this.mongoTemplate.find(new Query(c).skip(start).limit(limit), BroadcastAudio.class);
+    }
+
+    public void addAudioMetas(long serialId, List<AudioMeta> audioMetas) {
+        if(CollectionUtil.isEmpty(audioMetas)) {
+            return;
+        }
+
+        Query query = new Query(Criteria.where("serialId").is(serialId));
+        Update update = new Update();
+        update.addToSet("audioMetas", audioMetas);
+        update.set("updateTime", new Date());
+
+        this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);
+    }
+
+    public void addProcessTimes(long serialId, List<ProcessTime> times) {
+        if(CollectionUtil.isEmpty(times)) {
+            return;
+        }
+
+        Query query = new Query(Criteria.where("serialId").is(serialId));
+        Update update = new Update();
+        update.addToSet("times", times);
+        update.set("updateTime", new Date());
+
+        this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);
     }
 }

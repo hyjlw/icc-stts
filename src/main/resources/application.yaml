@@ -85,7 +85,7 @@ ms:
 
 tts:
   config:
-    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="10%" volume="120%">{content}</prosody></voice></speak>'
+    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="20%" volume="120%">{content}</prosody></voice></speak>'
 
 ffmpeg:
   path:
@@ -101,3 +101,7 @@ audio:
     path: C:/dev/trans
   recognize:
     enabled: true
+
+gemini:
+  config:
+    apiKeys: AIzaSyB1s99PMV4qnuQKeRn_0pXkzZun0W9b8U8, AIzaSyAoefn_bRVqjHLd6ZG-jcu3-GX0WuXcAd0

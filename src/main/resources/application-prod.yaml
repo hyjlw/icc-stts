@@ -86,7 +86,7 @@ ffmpeg:
 
 tts:
   config:
-    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="2%" volume="120%">{content}</prosody></voice></speak>'
+    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="20%" volume="120%">{content}</prosody></voice></speak>'
 
 audio:
   socket:

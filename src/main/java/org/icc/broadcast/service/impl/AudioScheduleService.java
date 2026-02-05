@@ -1,25 +1,20 @@
 package org.icc.broadcast.service.impl;
 
-import cn.hutool.core.date.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.icc.broadcast.common.HttpResultCode;
 import org.icc.broadcast.config.SttsConfig;
 import org.icc.broadcast.dto.AudioTransDto;
-import org.icc.broadcast.entity.BroadcastSession;
 import org.icc.broadcast.exception.BizException;
-import org.icc.broadcast.repo.BroadcastSessionRepository;
 import org.icc.broadcast.ws.AudioWebSocketClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -31,7 +26,6 @@ public class AudioScheduleService {
     private String socketUrl;
 
     private AudioWebSocketClient audioWebSocketClient;
-    private final RcgAudioProcessService rcgAudioProcessService;
     private final RawAudioProcessService rawAudioProcessService;
 
     private final AudioPlayService audioPlayService;
@@ -73,8 +67,10 @@ public class AudioScheduleService {
             }
         }
 
-        rcgAudioProcessService.startToHandleAudio(audioTransDto);
-        audioWebSocketClient.setAudioProcessService(rcgAudioProcessService);
+        rawAudioProcessService.setDestLang(audioTransDto.getDestLang());
+        rawAudioProcessService.setDestLangModel(audioTransDto.getDestModel());
+
+        audioWebSocketClient.setAudioProcessService(rawAudioProcessService);
 
         // reset play params
         audioPlayService.setAudioFileCount(0);
@@ -88,6 +84,12 @@ public class AudioScheduleService {
     public void stopSession() {
         sttsConfig.setSttsStarted(false);
         this.started = false;
+
+        audioPlayService.setAudioFileCount(0);
+        audioPlayService.setValidToPlay(false);
+
+        rawAudioProcessService.setDestLang("");
+        rawAudioProcessService.setDestLangModel("");
 
         audioWebSocketClient.setAudioProcessService(rawAudioProcessService);
     }
@@ -113,48 +115,5 @@ public class AudioScheduleService {
         log.info("current no client, try to init again...");
         initWsClient();
     }
-
-    private static final int SUNDAY_VAL = 1;
-    private static final int [][] VALID_SEGMENTS = new int[][]{{10, 12}, {16, 18}};
-
-    @Scheduled(initialDelay = 1, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
-    public void checkValidTimeRange() {
-        if(!started) {
-            return;
-        }
-
-        Date now = new Date();
-        boolean valid = true;
-
-        int day = DateUtil.dayOfWeek(now);
-        if (day != SUNDAY_VAL) {
-            valid = false;
-        }
-
-        if(valid) {
-            int hour = DateUtil.hour(now, true);
-            boolean active = false;
-            for(int []arr : VALID_SEGMENTS) {
-                if(hour >= arr[0] && hour < arr[1]) {
-                    active = true;
-                }
-
-                if (active) {
-                    break;
-                }
-            }
-
-            if(!active) {
-                valid = false;
-            }
-        }
-
-        if(!valid) {
-            log.warn("current time: {} is not valid period", now);
-
-            this.stopSession();
-        }
-    }
-
 
 }

@@ -30,5 +30,5 @@ public class SocketMsg {
 	private String type;
 	private long cxId;
 	private long timestamp;
-	private byte[] data;
+	private Object data;
 }

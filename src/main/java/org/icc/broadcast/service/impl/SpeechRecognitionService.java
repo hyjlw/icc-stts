@@ -1,5 +1,6 @@
 package org.icc.broadcast.service.impl;
 
+import org.icc.broadcast.dto.SpeechResult;
 import org.icc.broadcast.reader.BinaryAudioStreamReader;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -385,9 +386,21 @@ public class SpeechRecognitionService {
      * @param text
      * @return the file path
      */
-    public void synthesizeTextToSpeechSsml(String lang, String voiceName, String text, String destFilePath) {
+    public SpeechResult synthesizeTextToSpeechSsml(String lang, String voiceName, String text, String destFilePath) {
+        SpeechResult speechResult = SpeechResult.builder()
+                .srcLang(lang)
+                .text("")
+                .startTime(System.currentTimeMillis())
+                .endTime(System.currentTimeMillis())
+                .errMsg("")
+                .success(false)
+                .build();
+
+        String errMsg = "success";
+
         SpeechConfig speechConfig = buildSsmlSynthesizeSpeechConfig(lang, voiceName);
         SpeechSynthesizer speechSynthesizer = null;
+
         try {
             speechSynthesizer = new SpeechSynthesizer(speechConfig, null);
 
@@ -398,13 +411,21 @@ public class SpeechRecognitionService {
             SpeechSynthesisResult result = speechSynthesizer.SpeakSsml(ssml);
             AudioDataStream stream = AudioDataStream.fromResult(result);
             stream.saveToWavFile(destFilePath);
+
+            speechResult.setSuccess(true);
         } catch (Exception e) {
             log.error("text to speech ssml, error: {}", e.getMessage(), e);
+            errMsg = e.getMessage();
         } finally {
             if(speechSynthesizer != null) {
                 speechSynthesizer.close();
             }
+
+            speechResult.setEndTime(System.currentTimeMillis());
+            speechResult.setErrMsg(errMsg);
         }
+
+        return speechResult;
     }
 
     public SpeechConfig buildSynthesizeSpeechConfig(String lang, String voiceName) {
