@@ -14,7 +14,6 @@ public class AudioSttsConfig {
     private Double silentWeight = 20.0;
     private Boolean showVolumeLog = false;
 
-
     private Integer stopMsLevel1;
     private Integer stopMsLevel2;
     private Integer stopMsLevel3;

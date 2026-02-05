@@ -5,16 +5,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Data
 @Component
-@ConfigurationProperties(prefix = "gemini.config")
+@ConfigurationProperties(prefix = "audio.play")
 @RefreshScope
-public class GeminiConfig {
+public class AudioPlayConfig {
 
-    private List<String> apiKeys;
-    private String modelName;
-    private String translatePrompt;
+    private Integer minFileCount;
 
 }

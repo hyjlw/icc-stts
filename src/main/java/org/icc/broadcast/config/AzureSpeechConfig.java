@@ -5,16 +5,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Data
 @Component
-@ConfigurationProperties(prefix = "gemini.config")
+@ConfigurationProperties(prefix = "ms.speech")
 @RefreshScope
-public class GeminiConfig {
+public class AzureSpeechConfig {
 
-    private List<String> apiKeys;
-    private String modelName;
-    private String translatePrompt;
+    private String key;
+    private String region;
 
 }

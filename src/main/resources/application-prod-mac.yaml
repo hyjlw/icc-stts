@@ -73,11 +73,6 @@ file:
   download:
     dir: /Users/thomas/apps/icc-stts/files
 
-ms:
-  speech:
-    key:
-    region: southeastasia
-
 ffmpeg:
   path:
     main: ffmpeg

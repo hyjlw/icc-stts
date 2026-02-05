@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.icc.broadcast.config.AudioPlayConfig;
 import org.icc.broadcast.dto.AudioByteInfo;
 import org.icc.broadcast.dto.AudioInfo;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -48,8 +48,8 @@ public class AudioPlayService {
     @Setter
     private volatile boolean validToPlay = false;
 
-    @Value("${audio.recognize.enabled:false}")
-    private boolean recognizeEnabled;
+    private final AudioPlayConfig audioPlayConfig;
+
 
     public void playAudioByte(AudioByteInfo audioByteInfo) {
         concurrentLinkedQueue.put(audioByteInfo);
@@ -96,7 +96,8 @@ public class AudioPlayService {
 
             audioFileCount++;
 
-            if(audioFileCount > 0 && !validToPlay) {
+            // default set to 5
+            if(audioFileCount > audioPlayConfig.getMinFileCount() && !validToPlay) {
                 validToPlay = true;
             }
         } catch (IOException e) {

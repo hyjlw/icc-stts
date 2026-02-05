@@ -78,11 +78,6 @@ file:
   download:
     dir: C:/dev/files
 
-ms:
-  speech:
-    key: 282JjsUrd0LRmyxiDh7qlbd8EsdEpyvkBN6cLoEb74dghZ9zqQzHJQQJ99BLACqBBLyXJ3w3AAAYACOGuy7D
-    region: southeastasia
-
 tts:
   config:
     ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="20%" volume="120%">{content}</prosody></voice></speak>'
@@ -101,7 +96,3 @@ audio:
     path: C:/dev/trans
   recognize:
     enabled: true
-
-gemini:
-  config:
-    apiKeys:

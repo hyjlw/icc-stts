@@ -92,6 +92,13 @@ public class AudioGenerateService {
                 String destStereoFilePath = this.transPath + "/" + sessionId + "/" + "stereo_" + fileName;
                 ffmpegService.convertToStereo(destFilePath, destStereoFilePath);
 
+                if (!FileUtil.exist(destStereoFilePath)) {
+                    log.warn("generate stereo audio dest: {} file: {} failed", destLang, destStereoFilePath);
+                    return;
+                }
+
+                audioInfo.setFinalFilePath(destStereoFilePath);
+
                 AudioMeta audioMeta = AudioMeta.builder()
                         .provider("AZURE")
                         .lang(audioInfo.getDestLang())
@@ -112,11 +119,12 @@ public class AudioGenerateService {
                         .build();
 
                 audioInfo.getTimes().add(time);
+
+                // play the audio
+                audioPlayService.playAudio(audioInfo);
             } catch (Exception e) {
                 log.error("generate final audio error", e);
             } finally {
-                audioPlayService.playAudio(audioInfo);
-
                 // save audio info
                 broadcastAudioService.saveAudioInfo(audioInfo);
             }

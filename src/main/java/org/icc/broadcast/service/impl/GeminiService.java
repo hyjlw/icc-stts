@@ -14,7 +14,6 @@ import org.icc.broadcast.config.GeminiConfig;
 import org.icc.broadcast.config.LangMapConfig;
 import org.icc.broadcast.dto.SpeechResult;
 import org.icc.broadcast.exception.BizException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -27,9 +26,6 @@ import java.util.Random;
 @Slf4j
 public class GeminiService {
 
-    @Value("#{'${gemini.config.apiKeys}'.split(',')}")
-    private List<String> apiKeys;
-
     @Getter
     private String provider = "gemini";
 
@@ -41,7 +37,7 @@ public class GeminiService {
     @PostConstruct
     public void init() {
         try {
-            for(String apiKey : apiKeys) {
+            for(String apiKey : geminiConfig.getApiKeys()) {
                 Client client = Client.builder()
                         .apiKey(apiKey.trim())
                         .build();
