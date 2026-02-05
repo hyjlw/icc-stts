@@ -69,6 +69,7 @@ public class AudioScheduleService {
 
         rawAudioProcessService.setDestLang(audioTransDto.getDestLang());
         rawAudioProcessService.setDestLangModel(audioTransDto.getDestModel());
+        rawAudioProcessService.setSessionId(audioTransDto.getSessionId());
 
         audioWebSocketClient.setAudioProcessService(rawAudioProcessService);
 
@@ -90,6 +91,7 @@ public class AudioScheduleService {
 
         rawAudioProcessService.setDestLang("");
         rawAudioProcessService.setDestLangModel("");
+        rawAudioProcessService.setSessionId("");
 
         audioWebSocketClient.setAudioProcessService(rawAudioProcessService);
     }

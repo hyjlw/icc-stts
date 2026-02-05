@@ -24,11 +24,11 @@ public class BroadcastAudioService {
         PERSIST_POOL.execute(() -> {
             long serialId = audioInfo.getSerialId();
 
-            if(CollectionUtil.isEmpty(audioInfo.getAudioMetas())) {
+            if(!CollectionUtil.isEmpty(audioInfo.getAudioMetas())) {
                 broadcastAudioRepository.addAudioMetas(serialId, audioInfo.getAudioMetas());
             }
 
-            if(CollectionUtil.isEmpty(audioInfo.getTimes())) {
+            if(!CollectionUtil.isEmpty(audioInfo.getTimes())) {
                 broadcastAudioRepository.addProcessTimes(serialId, audioInfo.getTimes());
             }
 

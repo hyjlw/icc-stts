@@ -1,6 +1,7 @@
 package org.icc.broadcast.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,13 +25,16 @@ public class RawAudioProcessService implements AudioProcessService {
     private volatile String destLang;
     @Setter
     private volatile String destLangModel;
+    @Setter
+    private volatile String sessionId;
 
     @Override
     public void handleSocketMsg(SocketMsg socketMsg) {
-        PushAudioInfo pushAudioInfo = JSONObject.parseObject(socketMsg.getData().toString(), PushAudioInfo.class);
+        PushAudioInfo pushAudioInfo = JSONObject.parseObject(JSON.toJSONString(socketMsg.getData()), PushAudioInfo.class);
 
         AudioInfo audioInfo = AudioInfo.builder()
                 .serialId(pushAudioInfo.getSerialId())
+                .sessionId(sessionId)
                 .srcLang(pushAudioInfo.getSrcLang())
                 .destLang(destLang)
                 .destModel(destLangModel)

@@ -96,7 +96,7 @@ public class AudioPlayService {
 
             audioFileCount++;
 
-            if(audioFileCount > 5 && !validToPlay) {
+            if(audioFileCount > 0 && !validToPlay) {
                 validToPlay = true;
             }
         } catch (IOException e) {

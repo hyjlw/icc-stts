@@ -75,8 +75,7 @@ file:
 
 ms:
   speech:
-#    key: f0580668308c4e4b8e4e005b074d28c0
-    key: Bt9KB3yezNBZXNbSpoqe9y19138dW4ljqaLfb3RQAs1GLinByyR6JQQJ99BLACqBBLyXJ3w3AAAYACOGwYmU
+    key:
     region: southeastasia
 
 ffmpeg:

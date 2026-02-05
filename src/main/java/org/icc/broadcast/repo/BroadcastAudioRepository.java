@@ -47,7 +47,7 @@ public class BroadcastAudioRepository extends AbstractRepository<BroadcastAudio>
 
         Query query = new Query(Criteria.where("serialId").is(serialId));
         Update update = new Update();
-        update.addToSet("audioMetas", audioMetas);
+        update.push("audioMetas").each(audioMetas.toArray());
         update.set("updateTime", new Date());
 
         this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);
@@ -60,7 +60,7 @@ public class BroadcastAudioRepository extends AbstractRepository<BroadcastAudio>
 
         Query query = new Query(Criteria.where("serialId").is(serialId));
         Update update = new Update();
-        update.addToSet("times", times);
+        update.push("times").each(times.toArray());
         update.set("updateTime", new Date());
 
         this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);
