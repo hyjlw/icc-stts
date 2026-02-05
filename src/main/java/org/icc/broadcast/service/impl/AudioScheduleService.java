@@ -117,7 +117,7 @@ public class AudioScheduleService {
     private static final int SUNDAY_VAL = 1;
     private static final int [][] VALID_SEGMENTS = new int[][]{{10, 12}, {16, 18}};
 
-//    @Scheduled(initialDelay = 1, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 1, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
     public void checkValidTimeRange() {
         if(!started) {
             return;
