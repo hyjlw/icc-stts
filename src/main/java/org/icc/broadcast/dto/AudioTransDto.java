@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AudioTransDto {
-
+    private String broadcastId;
     @NotNull(message = "session id is null")
     private String sessionId;
     @NotNull(message = "src lang is null")
@@ -21,5 +21,5 @@ public class AudioTransDto {
     private String destLang;
     @NotNull(message = "dest model is null")
     private String destModel;
-
+    private String provider;
 }

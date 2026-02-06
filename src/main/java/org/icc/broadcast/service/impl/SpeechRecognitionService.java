@@ -1,5 +1,8 @@
 package org.icc.broadcast.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import org.icc.broadcast.config.AzureSpeechConfig;
+import org.icc.broadcast.dto.SpeechResult;
 import org.icc.broadcast.reader.BinaryAudioStreamReader;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -23,15 +26,13 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class SpeechRecognitionService {
 
     private static final Cache<String, SpeechConfig> CONFIG_CACHE = Caffeine.newBuilder().expireAfterWrite(12, TimeUnit.HOURS).build();
     private static final Cache<String, SpeechTranslationConfig> TRANSLATION_CONFIG_CACHE = Caffeine.newBuilder().expireAfterWrite(12, TimeUnit.HOURS).build();
 
-    @Value("${ms.speech.key}")
-    private String speechKey;
-    @Value("${ms.speech.region}")
-    private String speechRegion;
+    private final AzureSpeechConfig azureSpeechConfig;
 
     @Value("${file.download.dir}")
     private String baseDir;
@@ -45,11 +46,11 @@ public class SpeechRecognitionService {
      * @return speechConfig with lang
      */
     public SpeechConfig buildSpeechConfig(String lang) {
-        log.info("build speech config with: {}, {}", speechRegion, lang);
+        log.info("build speech config with: {}, {}", azureSpeechConfig, lang);
         SpeechConfig speechConfig = CONFIG_CACHE.getIfPresent(lang);
 
         if(speechConfig == null) {
-            speechConfig = SpeechConfig.fromSubscription(speechKey, speechRegion);
+            speechConfig = SpeechConfig.fromSubscription(azureSpeechConfig.getKey(), azureSpeechConfig.getRegion());
             speechConfig.setSpeechRecognitionLanguage(lang);
 
             CONFIG_CACHE.put(lang, speechConfig);
@@ -69,9 +70,9 @@ public class SpeechRecognitionService {
         SpeechTranslationConfig speechConfig = TRANSLATION_CONFIG_CACHE.getIfPresent(key);
 
         if(speechConfig == null) {
-            log.info("build speech config with: {}, {}, {}", speechRegion, srcLang, destLang);
+            log.info("build speech config with: {}, {}, {}", azureSpeechConfig, srcLang, destLang);
 
-            speechConfig = SpeechTranslationConfig.fromSubscription(speechKey, speechRegion);
+            speechConfig = SpeechTranslationConfig.fromSubscription(azureSpeechConfig.getKey(), azureSpeechConfig.getRegion());
             speechConfig.setSpeechRecognitionLanguage(srcLang);
             speechConfig.addTargetLanguage(destLang);
 
@@ -385,9 +386,21 @@ public class SpeechRecognitionService {
      * @param text
      * @return the file path
      */
-    public void synthesizeTextToSpeechSsml(String lang, String voiceName, String text, String destFilePath) {
+    public SpeechResult synthesizeTextToSpeechSsml(String lang, String voiceName, String text, String destFilePath) {
+        SpeechResult speechResult = SpeechResult.builder()
+                .srcLang(lang)
+                .text("")
+                .startTime(System.currentTimeMillis())
+                .endTime(System.currentTimeMillis())
+                .errMsg("")
+                .success(false)
+                .build();
+
+        String errMsg = "success";
+
         SpeechConfig speechConfig = buildSsmlSynthesizeSpeechConfig(lang, voiceName);
         SpeechSynthesizer speechSynthesizer = null;
+
         try {
             speechSynthesizer = new SpeechSynthesizer(speechConfig, null);
 
@@ -398,20 +411,28 @@ public class SpeechRecognitionService {
             SpeechSynthesisResult result = speechSynthesizer.SpeakSsml(ssml);
             AudioDataStream stream = AudioDataStream.fromResult(result);
             stream.saveToWavFile(destFilePath);
+
+            speechResult.setSuccess(true);
         } catch (Exception e) {
             log.error("text to speech ssml, error: {}", e.getMessage(), e);
+            errMsg = e.getMessage();
         } finally {
             if(speechSynthesizer != null) {
                 speechSynthesizer.close();
             }
+
+            speechResult.setEndTime(System.currentTimeMillis());
+            speechResult.setErrMsg(errMsg);
         }
+
+        return speechResult;
     }
 
     public SpeechConfig buildSynthesizeSpeechConfig(String lang, String voiceName) {
         SpeechConfig speechConfig = CONFIG_CACHE.getIfPresent(lang + "_" + voiceName);
 
         if(speechConfig == null) {
-            speechConfig = SpeechConfig.fromSubscription(speechKey, speechRegion);
+            speechConfig = SpeechConfig.fromSubscription(azureSpeechConfig.getKey(), azureSpeechConfig.getRegion());
 
             // Set either the `SpeechSynthesisVoiceName` or `SpeechSynthesisLanguage`.
             speechConfig.setSpeechSynthesisLanguage(lang);
@@ -429,8 +450,8 @@ public class SpeechRecognitionService {
         SpeechConfig speechConfig = CONFIG_CACHE.getIfPresent(key);
 
         if(speechConfig == null) {
-            speechConfig = SpeechConfig.fromSubscription(speechKey, speechRegion);
-            speechConfig.setSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Riff24Khz16BitMonoPcm);
+            speechConfig = SpeechConfig.fromSubscription(azureSpeechConfig.getKey(), azureSpeechConfig.getRegion());
+            speechConfig.setSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Riff16Khz16BitMonoPcm);
 
             CONFIG_CACHE.put(key, speechConfig);
         }

@@ -1,7 +1,10 @@
 package org.icc.broadcast.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.icc.broadcast.config.AudioPlayConfig;
 import org.icc.broadcast.dto.AudioByteInfo;
 import org.icc.broadcast.dto.AudioInfo;
 import org.springframework.stereotype.Service;
@@ -12,55 +15,71 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AudioPlayService {
-    private final PriorityBlockingQueue<AudioByteInfo> concurrentLinkedQueue = new PriorityBlockingQueue<>(100000,
-            (o1, o2) -> {
-                int c = Math.toIntExact(o1.getTimestamp() - o2.getTimestamp());
+//    private final PriorityBlockingQueue<AudioByteInfo> concurrentLinkedQueue = new PriorityBlockingQueue<>(100000,
+//            (o1, o2) -> {
+//                int c = Math.toIntExact(o1.getTimestamp() - o2.getTimestamp());
+//
+//                if(c == 0) {
+//                    c = Math.toIntExact(o1.getSeq() - o2.getSeq());
+//                }
+//
+//                return c;
+//            }
+//        );
 
-                if(c == 0) {
-                    c = Math.toIntExact(o1.getSeq() - o2.getSeq());
-                }
+    private final LinkedBlockingQueue<AudioByteInfo> concurrentLinkedQueue = new LinkedBlockingQueue<>(100000);
 
-                return c;
-            }
-        );
-
-    private final static int BUFFER_SIZE = 1024;
-    private final static int SAMPLE_RATE = 24000;
+    private final static int BUFFER_SIZE = 1280;
+    private final static int SAMPLE_RATE = 16000;
     private final static int BITS_PER_SAMPLE = 16;
     private final static int CHANNELS = 1;
 
     private  DataLine.Info info;
     private  SourceDataLine line;
 
+    @Setter
+    private int audioFileCount = 0;
+    @Setter
+    private volatile boolean validToPlay = false;
 
-    public void playAudioByte(AudioByteInfo audioByteInfo) {
-        concurrentLinkedQueue.put(audioByteInfo);
-    }
+    private final AudioPlayConfig audioPlayConfig;
 
     public void playAudio(AudioInfo audioInfo) {
         log.info("start to play audio: {}", audioInfo);
 
-        File destAudioFile = new File(audioInfo.getDestFilePath());
+        String filePath = audioInfo.getFilePath();
+//        if(StringUtils.isBlank(filePath)) {
+//            filePath = audioInfo.getFilePath();
+//        }
 
+        File destAudioFile = new File(filePath);
         if (!destAudioFile.exists()) {
-            log.warn("audio file: {} does not exist", audioInfo.getDestFilePath());
+            log.warn("audio file: {} does not exist", filePath);
             return;
         }
 
         try (FileInputStream fis = new FileInputStream(destAudioFile)) {
             byte[] audioBuffer = new byte[BUFFER_SIZE]; // Define a suitable buffer size
             int bytesRead;
-
             int seq = 0;
             while ((bytesRead = fis.read(audioBuffer)) != -1) {
                 byte []copiedBytes = Arrays.copyOf(audioBuffer, bytesRead);
+
+                if(seq < audioPlayConfig.getLowVolumeSegCount()) {
+                    for(int i = 0; i < copiedBytes.length; i++) {
+                        if(copiedBytes[i] > 1) {
+                            copiedBytes[i] = 1;
+                        }
+                    }
+                }
+
                 AudioByteInfo audioByteInfo = AudioByteInfo.builder()
                         .timestamp(audioInfo.getTimestamp())
                         .seq(seq++)
@@ -69,10 +88,18 @@ public class AudioPlayService {
 
                 concurrentLinkedQueue.put(audioByteInfo);
             }
-        } catch (IOException e) {
-            log.error("read audio: {} bytes error", audioInfo.getDestFilePath(), e);
+
+            audioFileCount++;
+
+            // default set to 5
+            if(audioFileCount > audioPlayConfig.getMinFileCount() && !validToPlay) {
+                validToPlay = true;
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("read audio: {} bytes error", filePath, e);
         }
     }
+
 
     @PostConstruct
     public void doPlayAudio() {
@@ -93,6 +120,15 @@ public class AudioPlayService {
 
             new Thread(() -> {
                 for (;;) {
+                    if(!validToPlay) {
+                        try {
+                            TimeUnit.MILLISECONDS.sleep(100);
+                        } catch (InterruptedException e) {
+                            log.error("sleep error");
+                        }
+
+                        continue;
+                    }
                     try {
                         AudioByteInfo audioInfo = concurrentLinkedQueue.take();
 
@@ -115,77 +151,23 @@ public class AudioPlayService {
 
     private void doPlayAudio2(AudioByteInfo audioInfo) {
         byte[] bytes = audioInfo.getBytes();
+
+        // fix illegal request to write non-integral number of frames (874 bytes, frameSize = 4 bytes)
+
+        int rest = bytes.length % 4;
+        if(rest > 0) {
+            int len = bytes.length + rest;
+            byte []newBytes = new byte[len];
+            System.arraycopy(bytes, 0, newBytes, 0, bytes.length);
+
+            for(int i = 0; i < rest; i++) {
+                newBytes[len - i - 1] = 0;
+            }
+
+            bytes = newBytes;
+        }
+
         line.write(bytes, 0, bytes.length);
     }
 
-    private void doPlayAudio21(AudioInfo audioInfo) {
-        log.info("start to play audio2: {}", audioInfo);
-
-        File mp3File = new File(audioInfo.getDestFilePath());
-
-        if (!mp3File.exists()) {
-            log.warn("audio file: {} does not exist", audioInfo.getDestFilePath());
-            return;
-        }
-
-        try (FileInputStream fis = new FileInputStream(mp3File)) {
-            byte[] audioBuffer = new byte[BUFFER_SIZE]; // Define a suitable buffer size
-            int bytesRead;
-
-            while ((bytesRead = fis.read(audioBuffer)) != -1) {
-                line.write(audioBuffer, 0, bytesRead);
-            }
-
-        } catch (IOException e) {
-            log.error("read audio: {} bytes error", audioInfo.getDestFilePath(), e);
-        }
-
-    }
-
-    private void doPlayAudio(AudioInfo audioInfo) {
-        log.info("start to play audio: {}", audioInfo);
-
-        String destFilePath = audioInfo.getDestFilePath();
-        String rawFilePath = audioInfo.getRawFilePath();
-        long rawDuration = audioInfo.getRawDuration();
-        long destDuration = audioInfo.getDestDuration();
-
-        try {
-            if (audioInfo.isProcessed()) {
-                if (!audioInfo.isGenerated()) {
-                    return;
-                }
-
-                Clip clip = AudioSystem.getClip();
-
-                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(destFilePath));
-                clip.open(audioInputStream);
-
-                log.info("start to play audio: {}, raw duration: {} ms, dest duration: {} ms", destFilePath, rawDuration, destDuration);
-                clip.start();
-
-                // sleep
-                TimeUnit.MILLISECONDS.sleep(destDuration);
-
-                clip.stop();
-                clip.close();
-            } else {
-                Clip clip = AudioSystem.getClip();
-
-                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(rawFilePath));
-                clip.open(audioInputStream);
-
-                log.info("start to play original audio: {}, raw duration: {} ms", rawFilePath, rawDuration);
-                clip.start();
-
-                // sleep
-                TimeUnit.MILLISECONDS.sleep(destDuration);
-
-                clip.stop();
-                clip.close();
-            }
-        } catch (LineUnavailableException | UnsupportedAudioFileException | IOException | InterruptedException e) {
-            log.warn("play audio: {} error: {}", destFilePath, e.getMessage());
-        }
-    }
 }

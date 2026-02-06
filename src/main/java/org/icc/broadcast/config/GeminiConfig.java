@@ -5,16 +5,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Data
 @Component
-@ConfigurationProperties(prefix = "audio.stts")
+@ConfigurationProperties(prefix = "gemini.config")
 @RefreshScope
-public class AudioSttsConfig {
+public class GeminiConfig {
 
-    private Double silentWeight = 20.0;
-    private Boolean showVolumeLog = false;
+    private List<String> apiKeys;
+    private String modelName;
+    private String translatePrompt;
 
-    private Integer stopMsLevel1;
-    private Integer stopMsLevel2;
-    private Integer stopMsLevel3;
 }

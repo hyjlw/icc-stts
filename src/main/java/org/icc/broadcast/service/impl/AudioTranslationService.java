@@ -4,10 +4,14 @@ import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.icc.broadcast.constant.ProcessType;
 import org.icc.broadcast.dto.AudioInfo;
+import org.icc.broadcast.dto.SpeechResult;
+import org.icc.broadcast.entity.ProcessTime;
 import org.icc.broadcast.utils.ThreadPoolExecutorFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.concurrent.*;
 
 @Service
@@ -15,59 +19,63 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class AudioTranslationService {
 
-    private static final Executor TRANS_POOL = ThreadPoolExecutorFactory.get(10000);
+    private static final Executor TRANS_POOL = ThreadPoolExecutorFactory.getSingle(10000);
 
-    private final FfmpegService ffmpegService;
-    private final SpeechRecognitionService speechRecognitionService;
+    private final GeminiService geminiService;
 
     private final AudioGenerateService audioGenerateService;
-    private final AudioPlayService audioPlayService;
+    private final BroadcastAudioService broadcastAudioService;
 
     public void translateAudio(AudioInfo audioInfo) {
-        log.info("start to translate audio: {}", audioInfo);
-
-        String srcLang = audioInfo.getSrcLang();
-        String destLang = audioInfo.getDestLang();
-        String filePath = audioInfo.getRawFilePath();
+        log.info("start to translate audio info: {}", audioInfo);
 
         TRANS_POOL.execute(() -> {
             boolean processed = false;
 
             try {
-                String parentDir = FileUtil.getParent(filePath, 1);
-                String fileName = FileUtil.getName(filePath);
+                String srcLang = audioInfo.getSrcLang();
+                String destLang = audioInfo.getDestLang();
+                String text = audioInfo.getRawText();
 
-                String convFileName = "conved_" + fileName;
-                String convFilePath = parentDir + "/" + convFileName;
+                long startTime = System.currentTimeMillis();
+                String provider = geminiService.getProvider();
 
-                ffmpegService.convertToWavS16(filePath, convFilePath);
+                SpeechResult speechResult = geminiService.translateText(srcLang, destLang, text);
 
-                if (!FileUtil.exist(convFilePath)) {
-                    log.warn("convert to dest file: {} failed", convFilePath);
+                if(speechResult == null) {
+                    log.warn("No translation result from {}", provider);
+                    speechResult = SpeechResult.builder()
+                            .success(false)
+                            .startTime(startTime)
+                            .endTime(System.currentTimeMillis())
+                            .text("")
+                            .build();
+                }
+                log.info("translate result: {}, time cost: {}", speechResult, (speechResult.getEndTime() - speechResult.getStartTime()));
+
+                audioInfo.setTranslatedText(speechResult.getText());
+
+                audioInfo.getTimes().add(ProcessTime.builder()
+                        .type(ProcessType.TRANSLATION.getCode())
+                        .startTime(new Date(speechResult.getStartTime()))
+                        .endTime(new Date(speechResult.getEndTime()))
+                        .duration(speechResult.getEndTime() - speechResult.getStartTime())
+                        .errMsg(speechResult.getErrMsg())
+                        .build());
+
+                // if not translated, set raw text
+                if(!speechResult.isSuccess()) {
+                    log.warn("current audio info: {} is not translated, skip audio generation", audioInfo.getSerialId());
                     return;
                 }
-
-                audioInfo.setTextStartTime(System.currentTimeMillis());
-
-                String destText = speechRecognitionService.translateSpeechAsync(srcLang, destLang, convFilePath);
-                log.info("translated to dest lang: {}, text: {}", destLang, destText);
-
-                audioInfo.setTextEndTime(System.currentTimeMillis());
-
-                log.info("time elapsed for recognition: {} ms", (audioInfo.getTextEndTime() - audioInfo.getTextStartTime()));
-
-                if (StringUtils.isBlank(destText)) {
-                    log.warn("No text recognized from file: {}", convFileName);
-                    return;
-                }
-
-                audioInfo.setDestText(destText);
 
                 audioGenerateService.generateAudio(audioInfo);
                 processed = true;
+            } catch (Exception e) {
+                log.error("translate audio text error", e);
             } finally {
                 if(!processed) {
-                    audioPlayService.playAudio(audioInfo);
+                    broadcastAudioService.saveAudioInfo(audioInfo);
                 }
             }
         });

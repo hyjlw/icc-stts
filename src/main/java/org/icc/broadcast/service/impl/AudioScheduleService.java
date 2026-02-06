@@ -6,19 +6,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.icc.broadcast.common.HttpResultCode;
 import org.icc.broadcast.config.SttsConfig;
 import org.icc.broadcast.dto.AudioTransDto;
-import org.icc.broadcast.entity.BroadcastSession;
 import org.icc.broadcast.exception.BizException;
-import org.icc.broadcast.repo.BroadcastSessionRepository;
 import org.icc.broadcast.ws.AudioWebSocketClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -26,14 +24,15 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AudioScheduleService {
 
+    private final static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
+
     @Value("${audio.socket.url}")
     private String socketUrl;
 
     private AudioWebSocketClient audioWebSocketClient;
-    private final RcgAudioProcessService rcgAudioProcessService;
     private final RawAudioProcessService rawAudioProcessService;
 
-    private final BroadcastSessionRepository broadcastSessionRepository;
+    private final AudioPlayService audioPlayService;
 
     private final SttsConfig sttsConfig;
 
@@ -72,8 +71,15 @@ public class AudioScheduleService {
             }
         }
 
-        rcgAudioProcessService.startToHandleAudio(audioTransDto);
-        audioWebSocketClient.setAudioProcessService(rcgAudioProcessService);
+        rawAudioProcessService.setDestLang(audioTransDto.getDestLang());
+        rawAudioProcessService.setDestLangModel(audioTransDto.getDestModel());
+        rawAudioProcessService.setSessionId(audioTransDto.getSessionId());
+
+        audioWebSocketClient.setAudioProcessService(rawAudioProcessService);
+
+        // reset play params
+        audioPlayService.setAudioFileCount(0);
+        audioPlayService.setValidToPlay(false);
 
         sttsConfig.setSttsStarted(true);
 
@@ -84,7 +90,12 @@ public class AudioScheduleService {
         sttsConfig.setSttsStarted(false);
         this.started = false;
 
-        audioWebSocketClient.setAudioProcessService(rawAudioProcessService);
+//        audioPlayService.setAudioFileCount(0);
+//        audioPlayService.setValidToPlay(false);
+//
+//        rawAudioProcessService.setDestLang("");
+//        rawAudioProcessService.setDestLangModel("");
+//        rawAudioProcessService.setSessionId("");
     }
 
     public void onWsClosed() {
@@ -93,20 +104,6 @@ public class AudioScheduleService {
         this.started = false;
 
         this.audioWebSocketClient = null;
-    }
-
-    @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
-    public void updateSessionTime() {
-        if(!started) {
-            return;
-        }
-
-        BroadcastSession session = broadcastSessionRepository.findOneBy(Criteria.where("started").is(true));
-        if(session == null) {
-            return;
-        }
-
-        broadcastSessionRepository.updateTime(session.getId(), new Date());
     }
 
     @Scheduled(initialDelay = 10, fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
@@ -122,4 +119,5 @@ public class AudioScheduleService {
         log.info("current no client, try to init again...");
         initWsClient();
     }
+
 }

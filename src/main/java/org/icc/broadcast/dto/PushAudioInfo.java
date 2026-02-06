@@ -9,11 +9,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BroadcastEvent {
+public class PushAudioInfo {
 
-    private String machineId;
-    private String machineKey;
-    private String sessionId;
-    private String event;
+    private Long serialId;
+    private Long segmentId;
+    private String srcLang;
+    private String text;
+    private Long timestamp;
 
 }

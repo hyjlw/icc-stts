@@ -7,14 +7,11 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "audio.stts")
+@ConfigurationProperties(prefix = "ms.speech")
 @RefreshScope
-public class AudioSttsConfig {
+public class AzureSpeechConfig {
 
-    private Double silentWeight = 20.0;
-    private Boolean showVolumeLog = false;
+    private String key;
+    private String region;
 
-    private Integer stopMsLevel1;
-    private Integer stopMsLevel2;
-    private Integer stopMsLevel3;
 }

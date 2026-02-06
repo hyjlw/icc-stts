@@ -1,22 +1,20 @@
 package org.icc.broadcast.kafka;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.bson.types.ObjectId;
 import org.icc.broadcast.dto.BroadcastEvent;
-import org.icc.broadcast.entity.BroadcastSession;
 import org.icc.broadcast.service.impl.BroadcastSessionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class BroadcastSessionMessageListener {
-    @Autowired
-    private BroadcastSessionService broadcastSessionService;
+    private final BroadcastSessionService broadcastSessionService;
 
     @KafkaListener(topics = { "BROADCAST_EVENT" }, concurrency = "2")
     public void receiveBroadcastEventMessage(ConsumerRecord<String, String> record, Acknowledgment ack) {
@@ -24,11 +22,7 @@ public class BroadcastSessionMessageListener {
 
         try {
             BroadcastEvent broadcastEvent = JSONObject.parseObject(record.value(), BroadcastEvent.class);
-
-            broadcastSessionService.switchBroadcastSession(BroadcastSession.builder()
-                    .id(new ObjectId(broadcastEvent.getBroadcastSessionId()))
-                            .started("start".equals(broadcastEvent.getEvent()))
-                    .build());
+            broadcastSessionService.switchBroadcastSession(broadcastEvent);
         } catch (Exception e) {
             log.error("error in Broadcast:", e);
         } finally {

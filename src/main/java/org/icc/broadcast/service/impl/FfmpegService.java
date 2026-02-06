@@ -294,19 +294,19 @@ public class FfmpegService {
             };
             //, "-shortest", "-af", "apad"
             Process process = runtime.exec(command);
-            log.info("[stretchAudio]Process {}", process);
+            log.debug("[stretchAudio]Process {}", process);
             int exitValue = process.waitFor();
-            log.info("[stretchAudio]Started audio stretch with exit code: {}", exitValue);
+            log.debug("[stretchAudio]Started audio stretch with exit code: {}", exitValue);
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            log.info("[stretchAudio]stdInput {}", stdInput.readLine());
+            log.debug("[stretchAudio]stdInput {}", stdInput.readLine());
             BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            log.info("[stretchAudio]stdError {}", stdError);
+            log.debug("[stretchAudio]stdError {}", stdError);
 
             // read the output from the command
             StringBuilder normalOutputBuffer = new StringBuilder();
             String line;
             while ((line = stdInput.readLine()) != null) {
-                log.info("[stretchAudio]This is ffmpeg try while block");
+                log.debug("[stretchAudio]This is ffmpeg try while block");
                 normalOutputBuffer.append(line);
                 if (!line.contains("Done:")) {
                     normalOutputBuffer.append("\n");
@@ -330,6 +330,55 @@ public class FfmpegService {
             return true;
         } catch (Exception e) {
             log.error("[stretchAudio]stretchAudio error", e);
+        }
+
+        return false;
+    }
+
+    public boolean convertToStereo(String audioPath, String destPath) {
+        try {
+            Runtime runtime = Runtime.getRuntime();
+            String[] command = {
+                    ffmpegPath, "-i", audioPath, "-ac", "2", destPath, "-y"
+            };
+            //, "-shortest", "-af", "apad"
+            Process process = runtime.exec(command);
+            log.debug("[convertToStereo]Process {}", process);
+            int exitValue = process.waitFor();
+            log.debug("[convertToStereo]Started audio convertToStereo with exit code: {}", exitValue);
+            BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            log.debug("[convertToStereo]stdInput {}", stdInput.readLine());
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            log.debug("[convertToStereo]stdError {}", stdError);
+
+            // read the output from the command
+            StringBuilder normalOutputBuffer = new StringBuilder();
+            String line;
+            while ((line = stdInput.readLine()) != null) {
+                log.debug("[convertToStereo]This is ffmpeg try while block");
+                normalOutputBuffer.append(line);
+                if (!line.contains("Done:")) {
+                    normalOutputBuffer.append("\n");
+                }
+
+            }
+            if (!normalOutputBuffer.toString().isEmpty()) {
+                log.debug("[convertToStereo]convertToStereo generation ended successfully. \n {}, for file: {}", normalOutputBuffer, audioPath);
+            }
+
+            // read any errors from the command
+            StringBuilder errorOutputBuffer = new StringBuilder();
+            while ((line = stdError.readLine()) != null) {
+                errorOutputBuffer.append(line);
+                errorOutputBuffer.append("\n");
+            }
+            if (!errorOutputBuffer.toString().isEmpty()) {
+                log.debug("[convertToStereo]convertToStereo generation ended with failure. \n {}, for file: {}", errorOutputBuffer, audioPath);
+            }
+
+            return true;
+        } catch (Exception e) {
+            log.error("[convertToStereo]convertToStereo error", e);
         }
 
         return false;

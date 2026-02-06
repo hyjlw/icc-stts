@@ -21,7 +21,7 @@ public class AudioWebSocketClient extends WebSocketClient{
     private final static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
 
     @Setter
-    private AudioProcessService audioProcessService;
+    private volatile AudioProcessService audioProcessService;
  
     public AudioWebSocketClient(URI serverUri) {
          super(serverUri);

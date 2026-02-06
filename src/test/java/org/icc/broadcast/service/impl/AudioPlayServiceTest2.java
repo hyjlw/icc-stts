@@ -14,7 +14,9 @@ import javax.sound.sampled.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringRunner.class)
@@ -32,9 +34,9 @@ public class AudioPlayServiceTest2 {
     @Before
     public void before() {
         AudioFormat audioFormat = new AudioFormat(
-                24000, // Sample rate (samples per second)
+                16000, // Sample rate (samples per second)
                 16,    // Bits per sample
-                1,     // Number of channels (1 for mono, 2 for stereo)
+                2,     // Number of channels (1 for mono, 2 for stereo)
                 true,  // Signed (true for signed PCM, false for unsigned)
                 false  // Big endian (true for big endian, false for little endian)
         );
@@ -103,5 +105,77 @@ public class AudioPlayServiceTest2 {
             log.error("read audio: {} bytes error", audioPath, e);
         }
 
+    }
+
+    @Test
+    public void testPlayBatch() {
+//        String []paths = new String[] {
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215800553.wav",
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215813853.wav",
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215821131.wav",
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215832057.wav",
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215843982.wav"
+//        };
+        String []paths = new String[] {
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354695833.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354705937.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354713973.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354722295.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354727927.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354732834.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354746341.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354751443.wav",
+        };
+
+        List<AudioByteInfo> list = new ArrayList<>();
+
+        for(String mp3File : paths) {
+            try (FileInputStream fis = new FileInputStream(mp3File)) {
+                byte[] audioBuffer = new byte[1280]; // Define a suitable buffer size
+                int bytesRead;
+
+                int seq = 0;
+                long ts = System.currentTimeMillis();
+                while ((bytesRead = fis.read(audioBuffer)) != -1) {
+                    byte []copiedBytes = Arrays.copyOf(audioBuffer, bytesRead);
+
+                    if(seq < 2) {
+                        for(int i = 0; i < copiedBytes.length; i++) {
+                            if(copiedBytes[i] > 1) {
+                                copiedBytes[i] = 1;
+                            }
+                        }
+                    }
+
+                    int rest = copiedBytes.length % 4;
+                    if(rest > 0) {
+                        int len = copiedBytes.length + rest;
+                        byte []newBytes = new byte[len];
+                        System.arraycopy(copiedBytes, 0, newBytes, 0, copiedBytes.length);
+
+                        for(int i = 0; i < rest; i++) {
+                            newBytes[len - i - 1] = 0;
+                        }
+
+                        copiedBytes = newBytes;
+                    }
+
+                    list.add(AudioByteInfo.builder().seq(seq++).timestamp(ts).bytes(copiedBytes).build());
+                }
+
+            } catch (IOException e) {
+                log.error("read audio: {} bytes error", mp3File, e);
+            }
+        }
+
+        this.playAudio(list);
+    }
+
+    private void playAudio(List<AudioByteInfo> list) {
+        for(AudioByteInfo audioByteInfo : list) {
+            byte[] bytes = audioByteInfo.getBytes();
+
+            line.write(bytes, 0, bytes.length);
+        }
     }
 }

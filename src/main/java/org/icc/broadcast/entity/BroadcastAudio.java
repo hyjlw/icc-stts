@@ -9,27 +9,32 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "BroadcastSession")
-public class BroadcastSession {
+@Document(collection = "BroadcastAudio")
+public class BroadcastAudio {
     @Id
     private ObjectId id;
-    private ObjectId langId;
 
-    private String sessionName;
+    private String broadcastId;
+
+    private String sessionId;
     private String srcLang;
-    private String destLang;
-    private String destModel;
-    private String gender;
 
+    private String rawFilePath;
+    private String rawText;
     /**
-     * AZURE, F5_TTS
+     * unit is millisecond
      */
-    private String provider;
+    private long rawDuration;
+
+    private List<AudioMeta> audioMetas;
+    private List<ProcessTime> times;
+    private List<TtsTime> ttsTimes;
 
     private Date updateTime = new Date();
     private Date createAt = new Date();

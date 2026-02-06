@@ -7,14 +7,11 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "audio.stts")
+@ConfigurationProperties(prefix = "audio.play")
 @RefreshScope
-public class AudioSttsConfig {
+public class AudioPlayConfig {
 
-    private Double silentWeight = 20.0;
-    private Boolean showVolumeLog = false;
+    private Integer minFileCount;
+    private Integer lowVolumeSegCount;
 
-    private Integer stopMsLevel1;
-    private Integer stopMsLevel2;
-    private Integer stopMsLevel3;
 }

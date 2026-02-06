@@ -1,19 +1,22 @@
 package org.icc.broadcast.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.icc.broadcast.dto.AudioByteInfo;
+import org.icc.broadcast.constant.ProcessType;
 import org.icc.broadcast.dto.AudioInfo;
+import org.icc.broadcast.dto.SpeechResult;
+import org.icc.broadcast.entity.AudioMeta;
+import org.icc.broadcast.entity.ProcessTime;
 import org.icc.broadcast.utils.ThreadPoolExecutorFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.concurrent.*;
 
 
@@ -29,19 +32,22 @@ public class AudioGenerateService {
     private final SpeechRecognitionService speechRecognitionService;
     private final AudioPlayService audioPlayService;
     private final FfmpegService ffmpegService;
+    private final BroadcastAudioService broadcastAudioService;
 
     public void generateAudio(AudioInfo audioInfo) {
         log.info("start to generate audio: {}", audioInfo);
 
-        String destLang = audioInfo.getDestLang();
-        String sessionId = audioInfo.getSessionId();
-        String audioModel = audioInfo.getDestModel();
-
         SYNTH_POOL.execute(() -> {
             try {
-                String fileName = FileUtil.getName(audioInfo.getRawFilePath());
+                String destLang = audioInfo.getDestLang();
+                String audioModel = audioInfo.getDestModel();
+                String sessionId = audioInfo.getSessionId();
+                String text = audioInfo.getTranslatedText();
+                String subPath = sessionId + "_" + DateUtil.formatDate(new Date());
 
-                String destFilePath = this.transPath + "/" + sessionId + "/" + fileName;
+                String fileName = "voice_" + System.currentTimeMillis() + ".wav";
+
+                String destFilePath = this.transPath + "/" + subPath + "/" + fileName;
                 String destParentDir = FileUtil.getParent(destFilePath, 1);
                 if (!FileUtil.exist(destParentDir)) {
                     try {
@@ -53,48 +59,84 @@ public class AudioGenerateService {
                     }
                 }
 
-                audioInfo.setSynthStartTime(System.currentTimeMillis());
+                log.info("synthesize to audio file: {}", destFilePath);
 
-                speechRecognitionService.synthesizeTextToSpeechSsml(destLang, audioModel, audioInfo.getDestText(), destFilePath);
+                long startTime = System.currentTimeMillis();
+                SpeechResult speechResult = speechRecognitionService.synthesizeTextToSpeechSsml(destLang, audioModel, text, destFilePath);
+                if(speechResult == null) {
+                    log.warn("No speech result in speech synthesize");
+                    speechResult = SpeechResult.builder()
+                            .success(false)
+                            .startTime(startTime)
+                            .endTime(System.currentTimeMillis())
+                            .text("")
+                            .build();
+                }
+                log.info("synthesis status:{}, time cost: {}",
+                        speechResult.isSuccess(), (speechResult.getEndTime() - speechResult.getStartTime()));
 
-                audioInfo.setSynthEndTime(System.currentTimeMillis());
-                log.info("time elapsed for synthesis: {} ms", (audioInfo.getSynthEndTime() - audioInfo.getSynthStartTime()));
+                if(!speechResult.isSuccess()) {
+                    log.warn("synthesize audio is not success");
+
+                    return;
+                }
 
                 if (!FileUtil.exist(destFilePath)) {
                     log.warn("generate audio dest: {} file: {} failed", destLang, destFilePath);
                     return;
                 }
 
-                audioInfo.setDestFilePath(destFilePath);
+                audioInfo.setFilePath(destFilePath);
+                audioInfo.setFinalFilePath(destFilePath);
 
                 // set dest duration first;
                 long destDuration = ffmpegService.getDuration(destFilePath);
-                audioInfo.setDestDuration(destDuration);
 
-                double atempo = 1.0 * destDuration / audioInfo.getRawDuration();
-                if (atempo > 1.2) {
-                    log.info("dest audio: {} length: {} is too long, will shorten it as the raw length: {}", destFilePath, destDuration, audioInfo.getRawDuration());
+                /**
+                String destStereoFilePath = this.transPath + "/" + subPath + "/" + "stereo_" + fileName;
+                ffmpegService.convertToStereo(destFilePath, destStereoFilePath);
 
-                    if (atempo > 2) {
-                        atempo = 2.0;
-                    }
-                    String destStretchedFilePath = this.transPath + "/" + sessionId + "/" + "stretched_" + fileName;
-                    ffmpegService.stretchAudio(destFilePath, destStretchedFilePath, atempo);
+                if (!FileUtil.exist(destStereoFilePath)) {
+                    log.warn("generate stereo audio dest: {} file: {} not found, wait and check again", destLang, destStereoFilePath);
+                    TimeUnit.MILLISECONDS.sleep(1500);
 
-                    if (FileUtil.exist(destStretchedFilePath)) {
-                        audioInfo.setDestFilePath(destStretchedFilePath);
-
-                        long destDurationForGenedFile = ffmpegService.getDuration(destStretchedFilePath);
-                        audioInfo.setDestDuration(destDurationForGenedFile);
+                    if (!FileUtil.exist(destStereoFilePath)) {
+                        log.warn("generate stereo audio dest: {} file: {} failed", destLang, destStereoFilePath);
+                        return;
                     }
                 }
+                audioInfo.setFinalFilePath(destStereoFilePath);
+                 */
 
-                audioInfo.setGenerated(true);
-                audioInfo.setProcessed(true);
+                AudioMeta audioMeta = AudioMeta.builder()
+                        .provider("AZURE")
+                        .lang(audioInfo.getDestLang())
+                        .audioModel(audioInfo.getDestModel())
+                        .duration(destDuration)
+                        .finalFilePath(audioInfo.getFilePath())
+                        .finalFilePath(audioInfo.getFinalFilePath())
+                        .text(audioInfo.getTranslatedText())
+                        .build();
+
+                audioInfo.getAudioMetas().add(audioMeta);
+
+                ProcessTime time = ProcessTime.builder()
+                        .type(ProcessType.SYNTHESISE.getCode())
+                        .startTime(new Date(speechResult.getStartTime()))
+                        .endTime(new Date(speechResult.getEndTime()))
+                        .duration(speechResult.getEndTime() - speechResult.getStartTime())
+                        .errMsg(speechResult.getErrMsg())
+                        .build();
+
+                audioInfo.getTimes().add(time);
+
+                // play the audio
+                audioPlayService.playAudio(audioInfo);
             } catch (Exception e) {
                 log.error("generate final audio error", e);
             } finally {
-                audioPlayService.playAudio(audioInfo);
+                // save audio info
+                broadcastAudioService.saveAudioInfo(audioInfo);
             }
         });
     }
