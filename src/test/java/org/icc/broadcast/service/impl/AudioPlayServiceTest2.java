@@ -109,12 +109,22 @@ public class AudioPlayServiceTest2 {
 
     @Test
     public void testPlayBatch() {
+//        String []paths = new String[] {
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215800553.wav",
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215813853.wav",
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215821131.wav",
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215832057.wav",
+//                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215843982.wav"
+//        };
         String []paths = new String[] {
-                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215800553.wav",
-                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215813853.wav",
-                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215821131.wav",
-                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215832057.wav",
-                "C:\\dev\\trans\\68ed20769502d6b82ad991e9\\stereo_voice_1770215843982.wav"
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354695833.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354705937.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354713973.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354722295.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354727927.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354732834.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354746341.wav",
+                "C:\\dev\\trans\\68ed1fc89502d6b82ad991dd_2026-02-06\\stereo_voice_1770354751443.wav",
         };
 
         List<AudioByteInfo> list = new ArrayList<>();
@@ -129,7 +139,7 @@ public class AudioPlayServiceTest2 {
                 while ((bytesRead = fis.read(audioBuffer)) != -1) {
                     byte []copiedBytes = Arrays.copyOf(audioBuffer, bytesRead);
 
-                    if(seq < 2) {
+                    if(seq < 20) {
                         for(int i = 0; i < copiedBytes.length; i++) {
                             if(copiedBytes[i] > 1) {
                                 copiedBytes[i] = 1;

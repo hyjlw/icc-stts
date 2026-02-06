@@ -1,8 +1,10 @@
 package org.icc.broadcast.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.icc.broadcast.constant.ProcessType;
 import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.dto.SpeechResult;
 import org.icc.broadcast.entity.AudioMeta;
@@ -41,10 +43,11 @@ public class AudioGenerateService {
                 String audioModel = audioInfo.getDestModel();
                 String sessionId = audioInfo.getSessionId();
                 String text = audioInfo.getTranslatedText();
+                String subPath = sessionId + "_" + DateUtil.formatDate(new Date());
 
                 String fileName = "voice_" + System.currentTimeMillis() + ".wav";
 
-                String destFilePath = this.transPath + "/" + sessionId + "/" + fileName;
+                String destFilePath = this.transPath + "/" + subPath + "/" + fileName;
                 String destParentDir = FileUtil.getParent(destFilePath, 1);
                 if (!FileUtil.exist(destParentDir)) {
                     try {
@@ -89,12 +92,17 @@ public class AudioGenerateService {
                 // set dest duration first;
                 long destDuration = ffmpegService.getDuration(destFilePath);
 
-                String destStereoFilePath = this.transPath + "/" + sessionId + "/" + "stereo_" + fileName;
+                String destStereoFilePath = this.transPath + "/" + subPath + "/" + "stereo_" + fileName;
                 ffmpegService.convertToStereo(destFilePath, destStereoFilePath);
 
                 if (!FileUtil.exist(destStereoFilePath)) {
-                    log.warn("generate stereo audio dest: {} file: {} failed", destLang, destStereoFilePath);
-                    return;
+                    log.warn("generate stereo audio dest: {} file: {} not found, wait and check again", destLang, destStereoFilePath);
+                    TimeUnit.MILLISECONDS.sleep(1500);
+
+                    if (!FileUtil.exist(destStereoFilePath)) {
+                        log.warn("generate stereo audio dest: {} file: {} failed", destLang, destStereoFilePath);
+                        return;
+                    }
                 }
 
                 audioInfo.setFinalFilePath(destStereoFilePath);
@@ -112,10 +120,11 @@ public class AudioGenerateService {
                 audioInfo.getAudioMetas().add(audioMeta);
 
                 ProcessTime time = ProcessTime.builder()
-                        .type("SYNTHESIZE")
+                        .type(ProcessType.SYNTHESISE.getCode())
                         .startTime(new Date(speechResult.getStartTime()))
                         .endTime(new Date(speechResult.getEndTime()))
                         .duration(speechResult.getEndTime() - speechResult.getStartTime())
+                        .errMsg(speechResult.getErrMsg())
                         .build();
 
                 audioInfo.getTimes().add(time);

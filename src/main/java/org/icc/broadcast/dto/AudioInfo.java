@@ -16,9 +16,10 @@ import java.util.List;
 public class AudioInfo {
 
     private Long serialId;
+    private Long segmentId;
+    private String srcLang;
     private String broadcastId;
     private String sessionId;
-    private String srcLang;
     private String destLang;
     private String destModel;
 

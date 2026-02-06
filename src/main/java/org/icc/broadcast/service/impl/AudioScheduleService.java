@@ -15,12 +15,16 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AudioScheduleService {
+
+    private final static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
 
     @Value("${audio.socket.url}")
     private String socketUrl;
@@ -86,14 +90,12 @@ public class AudioScheduleService {
         sttsConfig.setSttsStarted(false);
         this.started = false;
 
-        audioPlayService.setAudioFileCount(0);
-        audioPlayService.setValidToPlay(false);
-
-        rawAudioProcessService.setDestLang("");
-        rawAudioProcessService.setDestLangModel("");
-        rawAudioProcessService.setSessionId("");
-
-        audioWebSocketClient.setAudioProcessService(rawAudioProcessService);
+//        audioPlayService.setAudioFileCount(0);
+//        audioPlayService.setValidToPlay(false);
+//
+//        rawAudioProcessService.setDestLang("");
+//        rawAudioProcessService.setDestLangModel("");
+//        rawAudioProcessService.setSessionId("");
     }
 
     public void onWsClosed() {

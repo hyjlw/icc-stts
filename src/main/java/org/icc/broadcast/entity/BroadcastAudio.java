@@ -34,6 +34,7 @@ public class BroadcastAudio {
 
     private List<AudioMeta> audioMetas;
     private List<ProcessTime> times;
+    private List<TtsTime> ttsTimes;
 
     private Date updateTime = new Date();
     private Date createAt = new Date();

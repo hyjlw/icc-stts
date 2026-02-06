@@ -34,6 +34,7 @@ public class RawAudioProcessService implements AudioProcessService {
 
         AudioInfo audioInfo = AudioInfo.builder()
                 .serialId(pushAudioInfo.getSerialId())
+                .segmentId(pushAudioInfo.getSegmentId())
                 .sessionId(sessionId)
                 .srcLang(pushAudioInfo.getSrcLang())
                 .destLang(destLang)

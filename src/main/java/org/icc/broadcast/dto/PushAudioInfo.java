@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class PushAudioInfo {
 
     private Long serialId;
+    private Long segmentId;
     private String srcLang;
     private String text;
     private Long timestamp;

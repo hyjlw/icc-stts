@@ -77,7 +77,7 @@ public class AudioPlayService {
             while ((bytesRead = fis.read(audioBuffer)) != -1) {
                 byte []copiedBytes = Arrays.copyOf(audioBuffer, bytesRead);
 
-                if(seq < 2) {
+                if(seq < audioPlayConfig.getLowVolumeSegCount()) {
                     for(int i = 0; i < copiedBytes.length; i++) {
                         if(copiedBytes[i] > 1) {
                             copiedBytes[i] = 1;

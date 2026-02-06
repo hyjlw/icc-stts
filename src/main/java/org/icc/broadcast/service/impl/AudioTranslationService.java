@@ -4,6 +4,7 @@ import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.icc.broadcast.constant.ProcessType;
 import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.dto.SpeechResult;
 import org.icc.broadcast.entity.ProcessTime;
@@ -55,7 +56,7 @@ public class AudioTranslationService {
                 audioInfo.setTranslatedText(speechResult.getText());
 
                 audioInfo.getTimes().add(ProcessTime.builder()
-                        .type("TRANSLATION")
+                        .type(ProcessType.TRANSLATION.getCode())
                         .startTime(new Date(speechResult.getStartTime()))
                         .endTime(new Date(speechResult.getEndTime()))
                         .duration(speechResult.getEndTime() - speechResult.getStartTime())

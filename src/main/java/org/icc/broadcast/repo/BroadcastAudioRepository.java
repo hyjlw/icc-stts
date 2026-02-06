@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import org.icc.broadcast.entity.AudioMeta;
 import org.icc.broadcast.entity.BroadcastAudio;
 import org.icc.broadcast.entity.ProcessTime;
+import org.icc.broadcast.entity.TtsTime;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -61,6 +62,19 @@ public class BroadcastAudioRepository extends AbstractRepository<BroadcastAudio>
         Query query = new Query(Criteria.where("serialId").is(serialId));
         Update update = new Update();
         update.push("times").each(times.toArray());
+        update.set("updateTime", new Date());
+
+        this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);
+    }
+
+    public void addTtsTimes(long serialId, List<TtsTime> times) {
+        if(CollectionUtil.isEmpty(times)) {
+            return;
+        }
+
+        Query query = new Query(Criteria.where("serialId").is(serialId));
+        Update update = new Update();
+        update.push("ttsTimes").each(times.toArray());
         update.set("updateTime", new Date());
 
         this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);

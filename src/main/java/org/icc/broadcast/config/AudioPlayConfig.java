@@ -12,5 +12,6 @@ import org.springframework.stereotype.Component;
 public class AudioPlayConfig {
 
     private Integer minFileCount;
+    private Integer lowVolumeSegCount;
 
 }
