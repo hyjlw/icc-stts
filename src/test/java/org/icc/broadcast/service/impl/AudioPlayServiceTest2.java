@@ -139,7 +139,7 @@ public class AudioPlayServiceTest2 {
                 while ((bytesRead = fis.read(audioBuffer)) != -1) {
                     byte []copiedBytes = Arrays.copyOf(audioBuffer, bytesRead);
 
-                    if(seq < 20) {
+                    if(seq < 2) {
                         for(int i = 0; i < copiedBytes.length; i++) {
                             if(copiedBytes[i] > 1) {
                                 copiedBytes[i] = 1;

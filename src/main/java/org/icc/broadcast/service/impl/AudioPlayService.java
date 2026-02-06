@@ -15,30 +15,31 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AudioPlayService {
-    private final PriorityBlockingQueue<AudioByteInfo> concurrentLinkedQueue = new PriorityBlockingQueue<>(100000,
-            (o1, o2) -> {
-                int c = Math.toIntExact(o1.getTimestamp() - o2.getTimestamp());
+//    private final PriorityBlockingQueue<AudioByteInfo> concurrentLinkedQueue = new PriorityBlockingQueue<>(100000,
+//            (o1, o2) -> {
+//                int c = Math.toIntExact(o1.getTimestamp() - o2.getTimestamp());
+//
+//                if(c == 0) {
+//                    c = Math.toIntExact(o1.getSeq() - o2.getSeq());
+//                }
+//
+//                return c;
+//            }
+//        );
 
-                if(c == 0) {
-                    c = Math.toIntExact(o1.getSeq() - o2.getSeq());
-                }
-
-                return c;
-            }
-        );
-
+    private final LinkedBlockingQueue<AudioByteInfo> concurrentLinkedQueue = new LinkedBlockingQueue<>(100000);
 
     private final static int BUFFER_SIZE = 1280;
     private final static int SAMPLE_RATE = 16000;
     private final static int BITS_PER_SAMPLE = 16;
-    private final static int CHANNELS = 2;
+    private final static int CHANNELS = 1;
 
     private  DataLine.Info info;
     private  SourceDataLine line;
@@ -50,21 +51,15 @@ public class AudioPlayService {
 
     private final AudioPlayConfig audioPlayConfig;
 
-
-    public void playAudioByte(AudioByteInfo audioByteInfo) {
-        concurrentLinkedQueue.put(audioByteInfo);
-    }
-
     public void playAudio(AudioInfo audioInfo) {
         log.info("start to play audio: {}", audioInfo);
 
-        String filePath = audioInfo.getFinalFilePath();
-        if(StringUtils.isBlank(filePath)) {
-            filePath = audioInfo.getFilePath();
-        }
+        String filePath = audioInfo.getFilePath();
+//        if(StringUtils.isBlank(filePath)) {
+//            filePath = audioInfo.getFilePath();
+//        }
 
         File destAudioFile = new File(filePath);
-
         if (!destAudioFile.exists()) {
             log.warn("audio file: {} does not exist", filePath);
             return;
@@ -100,7 +95,7 @@ public class AudioPlayService {
             if(audioFileCount > audioPlayConfig.getMinFileCount() && !validToPlay) {
                 validToPlay = true;
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             log.error("read audio: {} bytes error", filePath, e);
         }
     }

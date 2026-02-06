@@ -92,6 +92,7 @@ public class AudioGenerateService {
                 // set dest duration first;
                 long destDuration = ffmpegService.getDuration(destFilePath);
 
+                /**
                 String destStereoFilePath = this.transPath + "/" + subPath + "/" + "stereo_" + fileName;
                 ffmpegService.convertToStereo(destFilePath, destStereoFilePath);
 
@@ -104,8 +105,8 @@ public class AudioGenerateService {
                         return;
                     }
                 }
-
                 audioInfo.setFinalFilePath(destStereoFilePath);
+                 */
 
                 AudioMeta audioMeta = AudioMeta.builder()
                         .provider("AZURE")

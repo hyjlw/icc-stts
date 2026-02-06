@@ -32,7 +32,7 @@ public class BroadcastAudioService {
             }
 
             if(!CollectionUtil.isEmpty(audioInfo.getTimes())) {
-                broadcastAudioRepository.addProcessTimes(serialId, audioInfo.getTimes());
+//                broadcastAudioRepository.addProcessTimes(serialId, audioInfo.getTimes());
 
                 TtsTime ttsTime = TtsTime.builder()
                         .text(audioInfo.getRawText())
