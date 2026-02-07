@@ -1,9 +1,7 @@
 package org.icc.broadcast.service.impl;
 
-import cn.hutool.core.io.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.icc.broadcast.constant.ProcessType;
 import org.icc.broadcast.dto.AudioInfo;
 import org.icc.broadcast.dto.SpeechResult;
@@ -21,7 +19,7 @@ public class AudioTranslationService {
 
     private static final Executor TRANS_POOL = ThreadPoolExecutorFactory.getSingle(10000);
 
-    private final GeminiService geminiService;
+    private final GoogleTranslateService googleTranslateService;
 
     private final AudioGenerateService audioGenerateService;
     private final BroadcastAudioService broadcastAudioService;
@@ -38,9 +36,9 @@ public class AudioTranslationService {
                 String text = audioInfo.getRawText();
 
                 long startTime = System.currentTimeMillis();
-                String provider = geminiService.getProvider();
+                String provider = googleTranslateService.getProvider();
 
-                SpeechResult speechResult = geminiService.translateText(srcLang, destLang, text);
+                SpeechResult speechResult = googleTranslateService.translateText(srcLang, destLang, text);
 
                 if(speechResult == null) {
                     log.warn("No translation result from {}", provider);

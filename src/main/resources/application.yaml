@@ -19,6 +19,7 @@ spring:
     url: jdbc:mysql://192.168.3.161:3306/iccdb?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false
     username: root
     password: admin.123
+
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
@@ -80,7 +81,7 @@ file:
 
 tts:
   config:
-    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="+20%" volume="120%">{content}</prosody></voice></speak>'
+    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="+10%" volume="120%">{content}</prosody></voice></speak>'
 
 ffmpeg:
   path:
