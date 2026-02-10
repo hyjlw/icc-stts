@@ -98,7 +98,6 @@ public class AudioPlayServiceTest2 {
             while ((bytesRead = fis.read(audioBuffer)) != -1) {
                 log.info("write seq: {}, data: {}", seq, audioBuffer);
                 byte []copiedBytes = Arrays.copyOf(audioBuffer, bytesRead);
-                audioPlayService.playAudioByte(AudioByteInfo.builder().seq(seq++).timestamp(ts).bytes(copiedBytes).build());
             }
 
         } catch (IOException e) {

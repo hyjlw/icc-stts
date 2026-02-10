@@ -69,10 +69,6 @@ mybatis-plus:
       # 删除后
       logic-delete-value: 1
 
-file:
-  download:
-    dir: D:/ICC-APP/ICC-STTS/files
-
 ffmpeg:
   path:
     main: ffmpeg
@@ -80,14 +76,10 @@ ffmpeg:
 
 tts:
   config:
-    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="+20%" volume="120%">{content}</prosody></voice></speak>'
+    ssml: '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{lang}"><voice name="{voiceName}"><prosody rate="+5%" volume="120%">{content}</prosody></voice></speak>'
 
 audio:
   socket:
-    url: ws://192.168.1.179:8186/icc-audio/ws/audio/icc-stts
-  save:
-    path: D:/ICC-APP/ICC-STTS/files
+    url: ws://192.168.1.71:8196/icc-recognizer/ws/audio/icc-stts
   trans:
     path: D:/ICC-APP/ICC-STTS/trans
-  recognize:
-    enabled: false
