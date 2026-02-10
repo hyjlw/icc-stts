@@ -19,10 +19,6 @@ logging:
 
 audio:
   socket:
-    url: ws://192.168.3.15:8186/ws/audio/icc-stts
-  save:
-    path: /Users/thomas/apps/icc-stts/files
+    url: ws://192.168.3.188:8196/icc-recognizer/ws/audio/icc-stts
   trans:
-    path: /Users/thomas/apps/icc-stts/trans
-  recognize:
-    enabled: true
+    path: /home/ubuntu/apps/icc-stts/trans

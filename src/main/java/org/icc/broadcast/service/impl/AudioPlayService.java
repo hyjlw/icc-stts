@@ -3,7 +3,6 @@ package org.icc.broadcast.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.icc.broadcast.config.AudioPlayConfig;
 import org.icc.broadcast.dto.AudioByteInfo;
 import org.icc.broadcast.dto.AudioInfo;
@@ -92,7 +91,7 @@ public class AudioPlayService {
             audioFileCount++;
 
             // default set to 5
-            if(audioFileCount > audioPlayConfig.getMinFileCount() && !validToPlay) {
+            if(!validToPlay && audioFileCount > audioPlayConfig.getMinFileCount()) {
                 validToPlay = true;
             }
         } catch (IOException | InterruptedException e) {

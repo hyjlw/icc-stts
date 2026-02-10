@@ -34,9 +34,6 @@ public class SpeechRecognitionService {
 
     private final AzureSpeechConfig azureSpeechConfig;
 
-    @Value("${file.download.dir}")
-    private String baseDir;
-
     @Value("${tts.config.ssml}")
     private String ttsSSML;
 
