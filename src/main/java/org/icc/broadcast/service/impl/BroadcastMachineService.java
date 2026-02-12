@@ -49,4 +49,8 @@ public class BroadcastMachineService {
         }
     }
 
+    public BroadcastMachine findByKey(String key) {
+        return broadcastMachineRepository.findOneBy(Criteria.where("key").is(key));
+    }
+
 }

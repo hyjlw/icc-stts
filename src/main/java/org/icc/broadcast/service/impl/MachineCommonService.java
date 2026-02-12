@@ -23,7 +23,7 @@ public class MachineCommonService {
 
     public String getMachineKey() {
         String hostname = getHostname();
-        String ip = getHostAddress();
+        String ip = getIp();
         String port = getHostPort();
 
         log.info("host info: {}, {}, {}", hostname, ip, port);
