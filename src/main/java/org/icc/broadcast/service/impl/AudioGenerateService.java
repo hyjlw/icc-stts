@@ -113,8 +113,8 @@ public class AudioGenerateService {
                         .lang(audioInfo.getDestLang())
                         .audioModel(audioInfo.getDestModel())
                         .duration(destDuration)
-                        .finalFilePath(audioInfo.getFilePath())
-                        .finalFilePath(audioInfo.getFinalFilePath())
+                        .filePath(audioInfo.getFilePath().replace(this.transPath, ""))
+                        .finalFilePath(audioInfo.getFinalFilePath().replace(this.transPath, ""))
                         .text(audioInfo.getTranslatedText())
                         .build();
 
