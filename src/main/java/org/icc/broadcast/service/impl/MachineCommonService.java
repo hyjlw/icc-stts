@@ -39,7 +39,7 @@ public class MachineCommonService {
 
                 String niName = ni.getName();
                 String displayName = ni.getDisplayName();
-                log.info("ni name: {}, disp name: {}", niName, displayName);
+                log.debug("ni name: {}, disp name: {}", niName, displayName);
 
                 if(!niName.equals(machineConfig.getNetworkInterfaceName())) {
                     continue;

@@ -85,6 +85,6 @@ ffmpeg:
 
 audio:
   socket:
-    url: ws://192.168.3.15:8196/icc-recognizer/ws/audio/icc-stts
+    url: ws://192.168.3.15:8186/icc-audio/ws/audio/icc-stts
   trans:
     path: C:/dev/trans
