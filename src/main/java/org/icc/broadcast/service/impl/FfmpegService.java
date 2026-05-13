@@ -76,14 +76,13 @@ public class FfmpegService {
                     .setInput(srcPath)
                     .overrideOutputFiles(true)
                     .addOutput(destPath)
-                    .setAudioChannels(1)
                     .setFormat("wav")
+                    .setAudioChannels(1)
                     .setAudioCodec("pcm_s16le")
-                    .setAudioBitRate(44_100).done()
+                    .setAudioSampleRate(16000).done()
                     ;
 
             FFmpegExecutor executor = new FFmpegExecutor(fFmpeg);
-
             executor.createJob(builder).run();
 
             return true;

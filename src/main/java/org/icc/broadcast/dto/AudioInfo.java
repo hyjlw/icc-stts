@@ -22,6 +22,7 @@ public class AudioInfo {
     private String sessionId;
     private String destLang;
     private String destModel;
+    private String provider;
 
     private String rawText;
     private String translatedText;

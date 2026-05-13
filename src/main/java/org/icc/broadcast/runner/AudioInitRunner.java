@@ -58,7 +58,7 @@ public class AudioInitRunner implements ApplicationRunner {
                     .destModel(broadcastSession.getDestModel())
                     .sessionId(broadcastSession.getId().toHexString())
                     .broadcastId(UUID.randomUUID().toString())
-                    .provider("AZURE")
+                    .provider(broadcastSession.getProvider())
                     .build());
         } catch (Exception e) {
             log.error("init audio error", e);

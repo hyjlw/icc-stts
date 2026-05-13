@@ -71,7 +71,7 @@ public class BroadcastSessionService {
                     .srcLang(broadcastSession.getSrcLang())
                     .destLang(broadcastSession.getDestLang())
                     .destModel(broadcastSession.getDestModel())
-                            .provider("AZURE")
+                            .provider(broadcastSession.getProvider())
                     .build());
         } else {
             audioScheduleService.stopSession();
