@@ -1,6 +1,7 @@
 package org.icc.broadcast.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.icc.broadcast.dto.SpeechResult;
 import org.icc.broadcast.utils.ThreadPoolExecutorFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +25,9 @@ public class SpeechRecognitionServiceTest {
     @Resource
     private FfmpegService ffmpegService;
 
+    @Resource
+    private VoxCpmService voxCpmService;
+
     @Test
     public void testTts() throws InterruptedException {
         String lang = "my-MM";
@@ -45,5 +49,12 @@ public class SpeechRecognitionServiceTest {
         log.info("text: {}", translatedText);
     }
 
-
+    @Test
+    public void testText2Speech() {
+        SpeechResult speechResult = voxCpmService.synthesizeTextToSpeechSsml("en",
+                "wangyi",
+                "Before the war began on Feb 28, the narrow waterway carried one-fifth of the world's oil and liquefied natural gas, and has since become a central pressure point in the conflict.",
+                "C:\\dev\\trans\\test\\" + System.currentTimeMillis() + ".wav");
+        log.info("speechResult: {}", speechResult);
+    }
 }

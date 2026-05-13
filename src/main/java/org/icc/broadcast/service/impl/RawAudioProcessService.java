@@ -27,6 +27,8 @@ public class RawAudioProcessService implements AudioProcessService {
     private volatile String destLangModel;
     @Setter
     private volatile String sessionId;
+    @Setter
+    private volatile String provider;
 
     @Override
     public void handleSocketMsg(SocketMsg socketMsg) {
@@ -39,6 +41,7 @@ public class RawAudioProcessService implements AudioProcessService {
                 .srcLang(pushAudioInfo.getSrcLang())
                 .destLang(destLang)
                 .destModel(destLangModel)
+                .provider(provider)
                 .rawText(pushAudioInfo.getText())
                 .timestamp(pushAudioInfo.getTimestamp())
                 .audioMetas(new ArrayList<>())
