@@ -33,7 +33,6 @@ public class BroadcastSessionService {
     private final BroadcastSessionRepository broadcastSessionRepository;
     private final MachineCommonService machineCommonService;
 
-
     private final AudioScheduleService audioScheduleService;
 
     public void switchBroadcastSession(BroadcastEvent broadcastEvent) {

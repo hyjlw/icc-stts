@@ -80,6 +80,6 @@ tts:
 
 audio:
   socket:
-    url: ws://192.168.1.179:8186/icc-audio/ws/audio/icc-stts
+    url: ws://192.168.1.179:8186/whisper-realtime/ws/audio/icc-stts
   trans:
     path: D:/ICC-APP/ICC-STTS/trans

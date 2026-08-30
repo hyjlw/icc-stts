@@ -22,6 +22,8 @@ public class AudioWebSocketClient extends WebSocketClient{
 
     @Setter
     private volatile AudioProcessService audioProcessService;
+    @Setter
+    private volatile boolean started = false;
  
     public AudioWebSocketClient(URI serverUri) {
          super(serverUri);
@@ -57,6 +59,12 @@ public class AudioWebSocketClient extends WebSocketClient{
         log.debug("-------- 接收到服务端数据： {}--------", msg);
 
         if(StringUtils.isBlank(msg)) {
+            log.warn("------ Message is blank ------");
+            return;
+        }
+
+        if(!this.started) {
+            log.warn("------ Audio tts Service is not started");
             return;
         }
 

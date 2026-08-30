@@ -1,10 +1,10 @@
 package org.icc.broadcast.service.impl;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.icc.broadcast.common.HttpResultCode;
-import org.icc.broadcast.config.SttsConfig;
 import org.icc.broadcast.dto.AudioTransDto;
 import org.icc.broadcast.exception.BizException;
 import org.icc.broadcast.ws.AudioWebSocketClient;
@@ -15,16 +15,12 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AudioScheduleService {
-
-    private final static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
 
     @Value("${audio.socket.url}")
     private String socketUrl;
@@ -34,9 +30,8 @@ public class AudioScheduleService {
 
     private final AudioPlayService audioPlayService;
 
-    private final SttsConfig sttsConfig;
-
     @Setter
+    @Getter
     private volatile boolean started = false;
 
     @PostConstruct
@@ -77,31 +72,21 @@ public class AudioScheduleService {
         rawAudioProcessService.setProvider(audioTransDto.getProvider());
 
         audioWebSocketClient.setAudioProcessService(rawAudioProcessService);
+        audioWebSocketClient.setStarted(true);
 
         // reset play params
         audioPlayService.setAudioFileCount(0);
         audioPlayService.setValidToPlay(false);
 
-        sttsConfig.setSttsStarted(true);
-
         this.started = true;
     }
 
     public void stopSession() {
-        sttsConfig.setSttsStarted(false);
         this.started = false;
-
-//        audioPlayService.setAudioFileCount(0);
-//        audioPlayService.setValidToPlay(false);
-//
-//        rawAudioProcessService.setDestLang("");
-//        rawAudioProcessService.setDestLangModel("");
-//        rawAudioProcessService.setSessionId("");
     }
 
     public void onWsClosed() {
         log.info("ws client closed, clear client info");
-        sttsConfig.setSttsStarted(false);
         this.started = false;
 
         this.audioWebSocketClient = null;

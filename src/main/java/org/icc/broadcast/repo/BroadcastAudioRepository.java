@@ -4,6 +4,8 @@
 package org.icc.broadcast.repo;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.mongodb.client.result.UpdateResult;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.icc.broadcast.entity.AudioMeta;
 import org.icc.broadcast.entity.BroadcastAudio;
@@ -23,6 +25,7 @@ import java.util.List;
  *
  */
 @Repository
+@Slf4j
 public class BroadcastAudioRepository extends AbstractRepository<BroadcastAudio> {
 
     public BroadcastAudio findById(ObjectId id) {
@@ -51,7 +54,8 @@ public class BroadcastAudioRepository extends AbstractRepository<BroadcastAudio>
         update.push("audioMetas").each(audioMetas.toArray());
         update.set("updateTime", new Date());
 
-        this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);
+        UpdateResult updateResult = this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);
+        log.info("update audioMetas {} ", updateResult.getMatchedCount());
     }
 
     public void addProcessTimes(long serialId, List<ProcessTime> times) {
@@ -77,6 +81,7 @@ public class BroadcastAudioRepository extends AbstractRepository<BroadcastAudio>
         update.push("ttsTimes").each(times.toArray());
         update.set("updateTime", new Date());
 
-        this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);
+        UpdateResult updateResult = this.mongoTemplate.updateFirst(query, update, BroadcastAudio.class);
+        log.info("update ttsTimes {} ", updateResult.getMatchedCount());
     }
 }
